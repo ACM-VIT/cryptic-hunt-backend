@@ -2,6 +2,36 @@
 
 This example shows how to implement a **REST API with TypeScript** using [Express](https://expressjs.com/) and [Prisma Client](https://www.prisma.io/docs/concepts/components/prisma-client). It is based on a SQLite database, you can find the database file with some dummy data at [`./prisma/dev.db`](./prisma/dev.db).
 
+## Env setup
+
+- Make a .env file
+- Insert one variable: `DATABASE_URL=postgres://postgres:mysecretpassword@localhost:5432/cryptichuntbackend`
+- Create a db using docker (You can use your preferred method too. At some point soon, we'll setup a hosted dev db.)
+- Run the following to setup a local db
+
+```bash
+docker run -d \
+    --name cryptichuntbackend \
+    -e POSTGRES_PASSWORD=mysecretpassword \
+    -e PGDATA=/var/lib/postgresql/data/pgdata \
+    -v /home/sankalpmukim/dbs/cryptichuntbackend \
+    -p 5432:5432 \
+    postgres
+
+docker start cryptichuntbackend
+
+psql -h localhost -p 5432 -U postgres
+Enter "mysecretpassword" as password to login
+
+Once you are logged in:
+
+postgres=# create database cryptichuntbackend;
+
+postgres=# exit
+
+npx prisma db push
+```
+
 ## Getting started
 
 ### 1. Download example and install dependencies
@@ -9,14 +39,18 @@ This example shows how to implement a **REST API with TypeScript** using [Expres
 Download this example:
 
 ```
-curl https://codeload.github.com/prisma/prisma-examples/tar.gz/latest | tar -xz --strip=2 prisma-examples-latest/typescript/rest-express
+
+curl <https://codeload.github.com/prisma/prisma-examples/tar.gz/latest> | tar -xz --strip=2 prisma-examples-latest/typescript/rest-express
+
 ```
 
 Install npm dependencies:
 
 ```
+
 cd rest-express
 npm install
+
 ```
 
 <details><summary><strong>Alternative:</strong> Clone the entire repo</summary>
@@ -24,14 +58,18 @@ npm install
 Clone this repository:
 
 ```
+
 git clone git@github.com:prisma/prisma-examples.git --depth=1
+
 ```
 
 Install npm dependencies:
 
 ```
+
 cd prisma-examples/typescript/rest-express
 npm install
+
 ```
 
 </details>
@@ -41,16 +79,19 @@ npm install
 Run the following command to create your SQLite database file. This also creates the `User` and `Post` tables that are defined in [`prisma/schema.prisma`](./prisma/schema.prisma):
 
 ```
+
 npx prisma migrate dev --name init
+
 ```
 
 When `npx prisma migrate dev` is executed against a newly created database, seeding is also triggered. The seed file in [`prisma/seed.ts`](./prisma/seed.ts) will be executed and your database will be populated with the sample data.
 
-
 ### 3. Start the REST API server
 
 ```
+
 npm run dev
+
 ```
 
 The server is now running on `http://localhost:3000`. You can now the API requests, e.g. [`http://localhost:3000/feed`](http://localhost:3000/feed).
@@ -70,6 +111,7 @@ You can access the REST API of the server using the following endpoints:
     - `orderBy` (optional): The sort order for posts in either ascending or descending order. The value can either `asc` or `desc`
 - `/user/:id/drafts`: Fetch user's drafts by their `id`
 - `/users`: Fetch all users
+
 ### `POST`
 
 - `/post`: Create a new post
@@ -91,7 +133,6 @@ You can access the REST API of the server using the following endpoints:
 ### `DELETE`
 
 - `/post/:id`: Delete a post by its `id`
-
 
 ## Evolving the app
 
@@ -183,7 +224,6 @@ Restart your application server and test out your new endpoint.
   - Body:
     - `bio: String` : The bio of the user
 
-
 <details><summary>Expand to view more sample Prisma Client queries on <code>Profile</code></summary>
 
 Here are some more sample Prisma Client queries on the new <code>Profile</code> model:
@@ -236,7 +276,7 @@ const userWithUpdatedProfile = await prisma.user.update({
 
 ## Switch to another database (e.g. PostgreSQL, MySQL, SQL Server, MongoDB)
 
-If you want to try this example with another database than SQLite, you can adjust the the database connection in [`prisma/schema.prisma`](./prisma/schema.prisma) by reconfiguring the `datasource` block. 
+If you want to try this example with another database than SQLite, you can adjust the the database connection in [`prisma/schema.prisma`](./prisma/schema.prisma) by reconfiguring the `datasource` block.
 
 Learn more about the different connection configurations in the [docs](https://www.prisma.io/docs/reference/database-reference/connection-urls).
 
@@ -303,6 +343,7 @@ datasource db {
   url      = "mongodb://USERNAME:PASSWORD@HOST/DATABASE?authSource=admin&retryWrites=true&w=majority"
 }
 ```
+
 Because MongoDB is currently in [Preview](https://www.prisma.io/docs/about/releases#preview), you need to specify the `previewFeatures` on your `generator` block:
 
 ```
@@ -311,6 +352,7 @@ generator client {
   previewFeatures = ["mongodb"]
 }
 ```
+
 </details>
 
 ## Next steps
@@ -318,4 +360,4 @@ generator client {
 - Check out the [Prisma docs](https://www.prisma.io/docs)
 - Share your feedback in the [`prisma2`](https://prisma.slack.com/messages/CKQTGR6T0/) channel on the [Prisma Slack](https://slack.prisma.io/)
 - Create issues and ask questions on [GitHub](https://github.com/prisma/prisma/)
-- Watch our biweekly "What's new in Prisma" livestreams on [Youtube](https://www.youtube.com/channel/UCptAHlN1gdwD89tFM3ENb6w)"# cryptic-hunt-backend" 
+- Watch our biweekly "What's new in Prisma" livestreams on [Youtube](https://www.youtube.com/channel/UCptAHlN1gdwD89tFM3ENb6w)"# cryptic-hunt-backend"
