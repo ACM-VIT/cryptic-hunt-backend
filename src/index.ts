@@ -1,22 +1,24 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import express from "express";
+import { authMiddleware } from "./auth";
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 const app = express();
 
 app.use(express.json());
 
-app.post(`/signup`, async (req, res) => {
-  const { name, email } = req.body;
+// app.post(`/signup`, async (req, res) => {
+//   const { name, email } = req.body;
+//   const result = await prisma.user.create({
+//     data: {
+//       name,
+//       email,
+//     },
+//   });
+//   res.json(result);
+// });
 
-  const result = await prisma.user.create({
-    data: {
-      name,
-      email,
-    },
-  });
-  res.json(result);
-});
+app.use(authMiddleware);
 
 app.get("/users", async (req, res) => {
   const users = await prisma.user.findMany();
