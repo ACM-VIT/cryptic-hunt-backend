@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,8 +11,70 @@ datasource db {
 }
 
 model User {
-  id      String @id @default(cuid())
-  email   String @unique
-  name    String
-  picture String
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String
+  gender      String?
+  rollNo      String?      @unique
+  phoneNo     String?
+  teamId      String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  team        Team?        @relation("team", fields: [teamId], references: [id])
+  teamLeading Team?        @relation("teamLeader")
+  Submission  Submission[]
+}
+
+model Team {
+  id           String       @id @default(cuid())
+  name         String
+  members      User[]       @relation("team")
+  teamLeaderId String       @unique
+  teamLeader   User         @relation("teamLeader", fields: [teamLeaderId], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  points       Int          @default(0)
+  Submission   Submission[]
+}
+
+model Question {
+  seq             Int // int because it will also define the order of questions
+  title           String
+  description     String
+  answer          String
+  pointsAwarded   Int
+  questionGroupId String
+  QuestionGroup   QuestionGroup @relation(fields: [questionGroupId], references: [id])
+  Submission      Submission[]
+
+  @@id([seq, questionGroupId])
+}
+
+model QuestionGroup {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  questions   Question[]
+  // false represents standalone question, true represents group of questions
+  isMultiple  Boolean
+  // false represents all questions accessible, true represents only one unsolved question accessible
+  isSequence  Boolean
+}
+
+model Submission {
+  id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String
+  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId])
+  questionSeq     Int
+  questionGroupId String
+  teamId          String
+  team            Team     @relation(fields: [teamId], references: [id])
+  answer          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isCorrect       Boolean
+
+  // Any team cannot solve the same question twice
+  @@unique([teamId, questionSeq, questionGroupId])
 }
