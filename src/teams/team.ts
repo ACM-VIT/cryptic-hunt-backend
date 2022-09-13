@@ -26,7 +26,7 @@ export async function createTeam(teamName: string, user_id: string) {
 }}
 
 // joining a team
-export async function joinTeam(team_code: string, user_id: string) {
+export async function joinTeam(team_id : string,team_code: string, user_id: string) {
   try {
     const alreadyMember = await prisma.user.findUnique({
       where: {
@@ -37,9 +37,19 @@ export async function joinTeam(team_code: string, user_id: string) {
         teamLeading : true,
       }
     })
+    const teamMember = await prisma.user.findMany({
+      where:{
+        teamId : team_id,
+      }}
+    )
     if (alreadyMember?.teamId !== null){ // not throwing error here
       throw Error("user is already a part of team")
     }
+    if (teamMember.length >= 4) {
+      // not throwing error here
+      throw Error("the team already has maximum participants");
+    }
+    else{
       const joinTeam = await prisma.user.update({
         where: {
           id: user_id,
@@ -52,7 +62,7 @@ export async function joinTeam(team_code: string, user_id: string) {
           },
         },
       });
-      return joinTeam;}
+      return joinTeam;}}
    catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError){
     if (e.code === 'P2025'){
@@ -94,21 +104,25 @@ export async function leaveTeam(team_id: string, user_id: string) {
               teamLeaderId: userTeam[1].id,
             },
           });
-        }}
-      const leave = await prisma.user.update({
-        where: {
-          id: user_id,
-        },
-        data: {
-          team: {
-            disconnect: true,
+        } else {
+          await prisma.team.delete({
+            where: {
+              id: team_id,
+            },
+          });
+        }
+      }
+        const leave = await prisma.user.update({
+          where: {
+            id: user_id,
           },
-          teamLeading : {
-            disconnect: true, // teamleader cant be null according to the rules
-          }
-        },
-      });
-      return leave;
+          data: {
+            team: {
+              disconnect: true,
+            },
+          },
+        });
+        return leave;
     }}
      catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError){

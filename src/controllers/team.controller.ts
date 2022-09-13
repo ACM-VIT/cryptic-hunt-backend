@@ -15,9 +15,9 @@ export async function createTeamfn(req: Request, res: Response) {
 
 // JoinTeam express fn
 export async function joinTeamfn(req: Request, res: Response) {
-  const { teamcode, userid } = req.body;
+  const { teamid, teamcode, userid } = req.body;
   try {
-    const Jointeam = await joinTeam(teamcode, userid);
+    const Jointeam = await joinTeam(teamid, teamcode, userid);
     res.json(Jointeam);
   } catch (e) {
     res.status(409).json({ error: e });
