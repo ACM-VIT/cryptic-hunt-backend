@@ -1,7 +1,8 @@
 // auth router
+import { User } from "@prisma/client";
 import express from "express";
 import { prisma } from ".";
-const { OAuth2Client } = require("google-auth-library");
+import { OAuth2Client } from "google-auth-library";
 const client = new OAuth2Client(process.env.CLIENT_ID);
 
 interface GoogleUserType {
@@ -9,10 +10,10 @@ interface GoogleUserType {
   sub: string;
   azp: string;
   aud: string;
-  iat: string;
-  exp: string;
+  iat: number;
+  exp: number;
   email: string;
-  email_verified: "true" | "false";
+  email_verified: boolean | undefined;
   name: string;
   picture: string;
   given_name: string;
@@ -33,8 +34,12 @@ async function verify(token: string) {
   return payload;
 }
 
+interface AuthRequest extends express.Request {
+  user?: User;
+}
+
 export const authMiddleware = async (
-  req: express.Request,
+  req: AuthRequest,
   res: express.Response,
   next: express.NextFunction
 ) => {
@@ -73,6 +78,8 @@ export const authMiddleware = async (
       return next();
     }
   } catch (error) {
+    console.error(error);
+    console.log(process.env.CLIENT_ID);
     // if user is not found
     return res.status(401).json({ message: "Unauthorized" });
   }
