@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { authMiddleware } from "./auth";
+import adminRouter from "./routes/AdminRouter";
 import cors from "cors";
 import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(
   })
 );
 
+app.use(adminRouter);
 export const prisma = new PrismaClient();
 // app.post(`/signup`, async (req, res) => {
 //   const { name, email } = req.body;
