@@ -1,12 +1,11 @@
 import express from "express";
-import { storage, listFiles } from "../firebase/firebase";
+import { updateAllQuestions } from "../controllers/admin.controller";
 
 const router = express.Router();
 
-router.post("/admin/refreshQuestions", async (req, res) => {
-  const files = await listFiles();
-  const questions = files.map((file) => file.name);
-  res.json(questions);
+router.get("/update", async (req, res) => {
+  await updateAllQuestions();
+  res.send("Updated");
 });
 
 export default router;

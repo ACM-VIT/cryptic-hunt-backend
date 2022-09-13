@@ -8,16 +8,16 @@ const app = express();
 
 app.use(express.json());
 
-// app.post(`/signup`, async (req, res) => {
-//   const { name, email } = req.body;
-//   const result = await prisma.user.create({
-//     data: {
-//       name,
-//       email,
-//     },
-//   });
-//   res.json(result);
-// });
+app.post(`/signup`, async (req, res) => {
+  const { name, email } = req.body;
+  const result = await prisma.user.create({
+    data: {
+      name,
+      email,
+    },
+  });
+  res.json(result);
+});
 
 // app.use(authMiddleware);
 
