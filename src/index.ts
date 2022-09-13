@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { authMiddleware } from "./auth";
+import router from "./routes/TeamRouter";
 
 export const prisma = new PrismaClient();
 const app = express();
@@ -18,12 +19,13 @@ app.use(express.json());
 //   res.json(result);
 // });
 
-app.use(authMiddleware);
+// app.use(authMiddleware);
 
-app.get("/users", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
+// app.get("/users", async (req, res) => {
+//   const users = await prisma.user.findMany();
+//   res.json(users);
+// });
+app.use(router)
 
 app.listen(3000, () =>
   console.log(`
