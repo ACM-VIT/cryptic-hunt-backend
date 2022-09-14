@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-}
-
-generator erd {
-  provider = "prisma-erd-generator"
 }
 
 datasource db {
@@ -26,24 +19,25 @@ model User {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   team        Team?        @relation("team", fields: [teamId], references: [id])
-  teamLeading Team?        @relation("teamLeader")
   Submission  Submission[]
+  teamLeading Team?        @relation("teamLeader")
 }
 
 model Team {
-  id           String       @id @default(cuid())
-  name         String
-  members      User[]       @relation("team")
-  teamLeaderId String       @unique
-  teamLeader   User         @relation("teamLeader", fields: [teamLeaderId], references: [id])
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  points       Int          @default(0)
-  Submission   Submission[]
+  id                      String                    @id @default(cuid())
+  name                    String
+  teamLeaderId            String                    @unique
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  points                  Int                       @default(0)
+  teamLeader              User                      @relation("teamLeader", fields: [teamLeaderId], references: [id])
+  QuestionGroupSubmission QuestionGroupSubmission[]
+  Submission              Submission[]
+  members                 User[]                    @relation("team")
 }
 
 model Question {
-  seq             Int // int because it will also define the order of questions
+  seq             Int
   title           String
   description     String
   answer          String
@@ -56,30 +50,40 @@ model Question {
 }
 
 model QuestionGroup {
-  id          String     @id @default(cuid())
-  name        String
-  description String
-  questions   Question[]
-  // false represents standalone question, true represents group of questions
-  isMultiple  Boolean
-  // false represents all questions accessible, true represents only one unsolved question accessible
-  isSequence  Boolean
+  id                      String                    @id @default(cuid())
+  name                    String
+  description             String
+  numQuestion             Int
+  isSequence              Boolean
+  questions               Question[]
+  QuestionGroupSubmission QuestionGroupSubmission[]
 }
 
 model Submission {
   id              String   @id @default(cuid())
-  user            User     @relation(fields: [userId], references: [id])
   userId          String
-  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId])
   questionSeq     Int
   questionGroupId String
   teamId          String
-  team            Team     @relation(fields: [teamId], references: [id])
   answer          String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   isCorrect       Boolean
+  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId])
+  team            Team     @relation(fields: [teamId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
 
-  // Any team cannot solve the same question twice
   @@unique([teamId, questionSeq, questionGroupId])
+}
+
+model QuestionGroupSubmission {
+  teamId                String
+  questionGroupId       String
+  numQuestionsCompleted Int           @default(0)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id])
+  team                  Team          @relation(fields: [teamId], references: [id])
+
+  @@id([teamId, questionGroupId])
 }
