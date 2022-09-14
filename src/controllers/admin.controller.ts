@@ -9,14 +9,14 @@ const truncate = async () => {
 };
 
 const uploadQuestionGroup = async (questionGroup: QuestionGroup) => {
-  const { name, description, questions, numQuestion, isSequence } =
+  const { name, description, questions, numQuestions, isSequence } =
     questionGroup;
 
   const response = await prisma.questionGroup.create({
     data: {
       name: name,
       description: description,
-      numQuestion: numQuestion,
+      numQuestions: numQuestions,
       isSequence: isSequence,
       questions: {
         createMany: {

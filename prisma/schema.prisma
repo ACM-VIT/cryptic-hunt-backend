@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(cuid())
+  id          String       @id
   email       String       @unique
   name        String
   picture     String
@@ -19,25 +22,25 @@ model User {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   team        Team?        @relation("team", fields: [teamId], references: [id])
-  Submission  Submission[]
   teamLeading Team?        @relation("teamLeader")
+  Submission  Submission[]
 }
 
 model Team {
   id                      String                    @id @default(cuid())
   name                    String
+  members                 User[]                    @relation("team")
   teamLeaderId            String                    @unique
+  teamLeader              User                      @relation("teamLeader", fields: [teamLeaderId], references: [id])
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
   points                  Int                       @default(0)
-  teamLeader              User                      @relation("teamLeader", fields: [teamLeaderId], references: [id])
-  QuestionGroupSubmission QuestionGroupSubmission[]
   Submission              Submission[]
-  members                 User[]                    @relation("team")
+  QuestionGroupSubmission QuestionGroupSubmission[]
 }
 
 model Question {
-  seq             Int
+  seq             Int // int because it will also define the order of questions
   title           String
   description     String
   answer          String
@@ -53,37 +56,40 @@ model QuestionGroup {
   id                      String                    @id @default(cuid())
   name                    String
   description             String
-  numQuestion             Int
-  isSequence              Boolean
   questions               Question[]
+  // false represents standalone question, true represents group of questions
+  numQuestions            Int
+  // false represents all questions accessible, true represents only one unsolved question accessible
+  isSequence              Boolean
   QuestionGroupSubmission QuestionGroupSubmission[]
 }
 
 model Submission {
   id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id])
   userId          String
+  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId])
   questionSeq     Int
   questionGroupId String
   teamId          String
+  team            Team     @relation(fields: [teamId], references: [id])
   answer          String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   isCorrect       Boolean
-  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId])
-  team            Team     @relation(fields: [teamId], references: [id])
-  user            User     @relation(fields: [userId], references: [id])
-
-  @@unique([teamId, questionSeq, questionGroupId])
 }
 
+// many to many relation between question-group and submissions to keep track of completed question groups
 model QuestionGroupSubmission {
   teamId                String
+  team                  Team          @relation(fields: [teamId], references: [id])
   questionGroupId       String
-  numQuestionsCompleted Int           @default(0)
+  questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id])
+  // this gets updated on each submission, I'll write/update that code don't worry
+  // just read this and compare it with questionGroup.numQuestions
+  numQuestionsCompleted Int           @default(0) // number of questions completed in the question group
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
-  questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id])
-  team                  Team          @relation(fields: [teamId], references: [id])
 
   @@id([teamId, questionGroupId])
 }

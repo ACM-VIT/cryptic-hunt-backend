@@ -3,7 +3,7 @@ interface QuestionGroup {
   name: string;
   description: string;
   questions: Question[];
-  numQuestion: number;
+  numQuestions: number;
   isSequence: boolean;
 }
 
