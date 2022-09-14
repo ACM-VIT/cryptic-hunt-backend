@@ -1,10 +1,13 @@
-import { Request, Response } from "express";
+import { Request , Response } from "express";
 import { createTeam, findTeam, joinTeam, leaveTeam } from "../teams/team";
+import { u_req } from "../models/req";
+
 
 // CreateTeam Express fn
-export async function createTeamfn(req: Request, res: Response) {
+export async function createTeamfn(req: u_req, res: Response) {
   try {
-    const { teamname, userid } = req.body;
+    const teamname = req.body.teamname;
+    const userid = req.user.id;
 
     const team = await createTeam(teamname, userid);
     res.json(team);
@@ -14,10 +17,11 @@ export async function createTeamfn(req: Request, res: Response) {
 }
 
 // JoinTeam express fn
-export async function joinTeamfn(req: Request, res: Response) {
-  const { teamid, teamcode, userid } = req.body;
+export async function joinTeamfn(req: u_req, res: Response) {
+  const teamcode = req.body.teamcode
+  const userid = req.user.id
   try {
-    const Jointeam = await joinTeam(teamid, teamcode, userid);
+    const Jointeam = await joinTeam(teamcode, userid);
     res.json(Jointeam);
   } catch (e) {
     res.status(409).json({ error: e });
@@ -25,20 +29,21 @@ export async function joinTeamfn(req: Request, res: Response) {
 }
 
 // LeaveTeam express fn
-export async function leaveTeamfn(req: Request, res: Response) {
-  const { teamid, userid } = req.body;
+export async function leaveTeamfn(req: u_req, res: Response) {
+  const teamcode = req.body.teamcode;
+  const userid = req.user.id;
   try {
-    const Leave = await leaveTeam(teamid, userid);
+    const Leave = await leaveTeam(teamcode, userid);
     res.json(Leave);
   } catch (e) {
     res.status(409).json({ error: e });
   }
 }
 // Findteam express fn
-export async function findTeamfn(req: Request, res: Response) {
-  const { teamid } = req.body;
+export async function findTeamfn(req: u_req, res: Response) {
+  const teamcode  = req.body.teamcode;
   try {
-    const team = await findTeam(teamid);
+    const team = await findTeam(teamcode);
     if (team === null) {
       res.status(500).json({ error: "invalid team id" });
     } else {

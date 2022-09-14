@@ -11,7 +11,7 @@ async function getRandomCode() {
 // creating a team
 export async function createTeam(teamName: string, user_id: string) {
   try {
-    const team_code = await getRandomCode();
+    const team_code = (await getRandomCode());
     const newTeam = await prisma.team.create({
       data: {
         teamcode: team_code,
@@ -21,10 +21,13 @@ export async function createTeam(teamName: string, user_id: string) {
       },
     });
     return newTeam;
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2014") {
         throw "the user is already in a team";
+      }
+      else{
+        throw e
       }
     }
   }
@@ -32,7 +35,6 @@ export async function createTeam(teamName: string, user_id: string) {
 
 // joining a team
 export async function joinTeam(
-  team_id: string,
   team_code: string,
   user_id: string
 ) {
@@ -48,7 +50,9 @@ export async function joinTeam(
     });
     const teamMember = await prisma.user.findMany({
       where: {
-        teamId: team_id,
+        team:{
+          teamcode : team_code
+        }
       },
     });
     if (alreadyMember?.teamId !== null) {
@@ -83,24 +87,26 @@ export async function joinTeam(
 }
 
 // leaving a team
-export async function leaveTeam(team_id: string, user_id: string) {
+export async function leaveTeam(team_code: string, user_id: string) {
   try {
     const alreadyMember = await prisma.user.findUnique({
       where: {
         id: user_id,
       },
       select: {
-        teamId: true,
-        teamLeading: true,
-      },
-    });
+        teamId : true,
+        teamLeading : true
+        }
+      });
     if (alreadyMember?.teamId === null) {
       throw new Error("User is not a part of a team"); // not throwing error here
     } else {
       if (alreadyMember?.teamLeading !== null) {
         const userTeam = await prisma.user.findMany({
           where: {
-            teamId: team_id,
+            team : {
+              teamcode : team_code
+            }
           },
           orderBy: {
             updatedAt: "asc",
@@ -109,7 +115,7 @@ export async function leaveTeam(team_id: string, user_id: string) {
         if (userTeam.length > 1) {
           const updatingTeam = await prisma.team.update({
             where: {
-              id: team_id,
+              teamcode: team_code,
             },
             data: {
               teamLeaderId: userTeam[1].id,
@@ -118,7 +124,7 @@ export async function leaveTeam(team_id: string, user_id: string) {
         } else {
           await prisma.team.delete({
             where: {
-              id: team_id,
+              teamcode: team_code,
             },
           });
         }
@@ -137,16 +143,16 @@ export async function leaveTeam(team_id: string, user_id: string) {
     }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      return e;
+      throw ("an error occured while leaving");
     }
   }
 }
 
 // finding team
-export async function findTeam(teamID: string) {
+export async function findTeam(team_code: string) {
   const team = await prisma.team.findUnique({
     where: {
-      id: teamID,
+      teamcode: team_code,
     },
   });
   return team;
