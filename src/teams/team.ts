@@ -11,7 +11,7 @@ async function getRandomCode() {
 // creating a team
 export async function createTeam(teamName: string, user_id: string) {
   try {
-    const team_code = (await getRandomCode());
+    const team_code = await getRandomCode();
     const newTeam = await prisma.team.create({
       data: {
         teamcode: team_code,
@@ -25,19 +25,15 @@ export async function createTeam(teamName: string, user_id: string) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2014") {
         throw "the user is already in a team";
-      }
-      else{
-        throw e
+      } else {
+        throw e;
       }
     }
   }
 }
 
 // joining a team
-export async function joinTeam(
-  team_code: string,
-  user_id: string
-) {
+export async function joinTeam(team_code: string, user_id: string) {
   try {
     const alreadyMember = await prisma.user.findUnique({
       where: {
@@ -50,9 +46,9 @@ export async function joinTeam(
     });
     const teamMember = await prisma.user.findMany({
       where: {
-        team:{
-          teamcode : team_code
-        }
+        team: {
+          teamcode: team_code,
+        },
       },
     });
     if (alreadyMember?.teamId !== null) {
@@ -94,19 +90,19 @@ export async function leaveTeam(team_code: string, user_id: string) {
         id: user_id,
       },
       select: {
-        teamId : true,
-        teamLeading : true
-        }
-      });
+        teamId: true,
+        teamLeading: true,
+      },
+    });
     if (alreadyMember?.teamId === null) {
       throw new Error("User is not a part of a team"); // not throwing error here
     } else {
       if (alreadyMember?.teamLeading !== null) {
         const userTeam = await prisma.user.findMany({
           where: {
-            team : {
-              teamcode : team_code
-            }
+            team: {
+              teamcode: team_code,
+            },
           },
           orderBy: {
             updatedAt: "asc",
@@ -143,7 +139,7 @@ export async function leaveTeam(team_code: string, user_id: string) {
     }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      throw ("an error occured while leaving");
+      throw "an error occured while leaving";
     }
   }
 }

@@ -71,7 +71,7 @@ export const authMiddleware = async (
           id: userGoogle.sub,
           name: userGoogle.name,
           email: userGoogle.email,
-          picture: userGoogle.picture
+          picture: userGoogle.picture,
         },
       });
       req.user = newUser;

@@ -1,7 +1,6 @@
-import { Request , Response } from "express";
+import { Request, Response } from "express";
 import { createTeam, findTeam, joinTeam, leaveTeam } from "../teams/team";
 import { u_req } from "../models/req";
-
 
 // CreateTeam Express fn
 export async function createTeamfn(req: u_req, res: Response) {
@@ -18,8 +17,8 @@ export async function createTeamfn(req: u_req, res: Response) {
 
 // JoinTeam express fn
 export async function joinTeamfn(req: u_req, res: Response) {
-  const teamcode = req.body.teamcode
-  const userid = req.user.id
+  const teamcode = req.body.teamcode;
+  const userid = req.user.id;
   try {
     const Jointeam = await joinTeam(teamcode, userid);
     res.json(Jointeam);
@@ -41,7 +40,7 @@ export async function leaveTeamfn(req: u_req, res: Response) {
 }
 // Findteam express fn
 export async function findTeamfn(req: u_req, res: Response) {
-  const teamcode  = req.body.teamcode;
+  const teamcode = req.body.teamcode;
   try {
     const team = await findTeam(teamcode);
     if (team === null) {

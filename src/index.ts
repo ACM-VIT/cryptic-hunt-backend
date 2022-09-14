@@ -7,7 +7,6 @@ import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-
 import user_router from "./routes/UserRouter";
 dotenv.config();
 
-
 const app = express();
 
 app.use(express.json());
@@ -31,7 +30,6 @@ export const prisma = new PrismaClient();
 //   res.json(result);
 // });
 
-
 // app.use(authMiddleware);
 
 // / route
@@ -43,13 +41,12 @@ app.get("/", (req, res) => {
 
 app.use(authMiddleware);
 
-
 // app.get("/users", async (req, res) => {
 //   const users = await prisma.user.findMany();
 //   res.json(users);
 // });
-app.use("/teams",router)
-app.use("/user", user_router)
+app.use("/teams", router);
+app.use("/user", user_router);
 
 const port = 8081;
 app.listen(port, () =>
