@@ -34,7 +34,7 @@ async function verify(token: string) {
   return payload;
 }
 
-interface AuthRequest extends express.Request {
+export interface AuthRequest extends express.Request {
   user?: User;
 }
 
