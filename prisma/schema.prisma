@@ -29,6 +29,7 @@ model User {
 model Team {
   id                      String                    @id @default(cuid())
   name                    String
+  teamcode                String                    @unique
   members                 User[]                    @relation("team")
   teamLeaderId            String                    @unique
   teamLeader              User                      @relation("teamLeader", fields: [teamLeaderId], references: [id])

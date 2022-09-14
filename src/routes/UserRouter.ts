@@ -17,28 +17,30 @@ user_router.post("/profile", async (req: u_req, res: Response) => {
         phoneNo: phonenumber,
       },
     });
-    res.json(user_signup);
+    return res.json(user_signup);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       console.log(e);
-      res.status(501).json({"error" : "unabele to modify profile details"});
+      return res.status(501).json({ error: "unabele to modify profile details" });
     }
   }
 });
 
-user_router.get("/profile", async (req: u_req, res: Response)=>{
-  try{
-  const userProfile = await prisma.user.findUnique({
-    where : {
-      id : req.user.id
+user_router.get("/profile", async (req: u_req, res: Response) => {
+  try {
+    const userProfile = await prisma.user.findUnique({
+      where: {
+        id: req.user.id,
+      },
+    });
+    return res.json(userProfile);
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      console.log(e);
+      return res
+        .status(501)
+        .json({ error: "an error occured while getting user profile" });
     }
-  })
-  res.json(userProfile)
-}
-catch (e){
-   if (e instanceof Prisma.PrismaClientKnownRequestError) {
-     console.log(e);
-     res.status(501).json({"error" : "an error occured while getting user profile"}) ;
-   }
-}})
+  }
+});
 export default user_router;
