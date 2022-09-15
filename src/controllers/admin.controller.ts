@@ -1,6 +1,6 @@
-import { prisma } from "../../prisma/prisma";
+import { QuestionGroup, Question, Prisma } from "@prisma/client";
+import {prisma} from '../../prisma/prisma';
 import { getFiles } from "../firebase/utils";
-import { QuestionGroup, Question } from "../models/QuestionModels";
 import bcrypt from "bcrypt";
 
 const saltRounds = 10;
@@ -11,8 +11,15 @@ const truncate = async () => {
   await prisma.question.deleteMany({});
 };
 
-const uploadQuestionGroup = async (questionGroup: QuestionGroup) => {
-  const { name, description, questions, numQuestions, isSequence } =
+type UploadQuestionMethodType = Omit<
+  Prisma.QuestionGroupCreateInput,
+  "questions"
+> & {
+  questions: Prisma.QuestionCreateManyQuestionGroupInput[];
+};
+
+const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
+  const { name, description, isSequence, numberOfQuestions, questions } =
     questionGroup;
 
   // Hash each answer and store it in the database
@@ -29,10 +36,10 @@ const uploadQuestionGroup = async (questionGroup: QuestionGroup) => {
 
   const response = await prisma.questionGroup.create({
     data: {
-      name: name,
-      description: description,
-      numQuestions: numQuestions,
-      isSequence: isSequence,
+      name,
+      description,
+      isSequence,
+      numberOfQuestions,
       questions: {
         createMany: {
           data: hashedQuestions,

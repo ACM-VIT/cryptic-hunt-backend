@@ -1,5 +1,5 @@
+import { QuestionGroup } from "@prisma/client";
 import { prisma } from "../../prisma/prisma";
-import { QuestionGroup, Question } from "../models/QuestionModels";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {

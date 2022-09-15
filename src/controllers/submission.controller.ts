@@ -12,13 +12,32 @@ const submitAnswer = async (
     where: {
       seq_questionGroupId: {
         questionGroupId: questionGroupId,
-        seq: 1,
+        seq: seq,
       },
     },
   });
 
   if (!question) {
     return "Question not found";
+  }
+
+  // Check for existing submissions
+  const previousSubmissions = await prisma.submission.findMany({
+    where: {
+      teamId: teamId,
+      questionGroupId: questionGroupId,
+      questionSeq: seq,
+    },
+  });
+
+  if (previousSubmissions.length > 0) {
+    // Check if any of the submissions have a correct answer
+    const correctSubmission = previousSubmissions.find(
+      (submission) => submission.isCorrect
+    );
+    if (correctSubmission) {
+      return "Correct answer already submitted";
+    }
   }
 
   const isCorrect = await bcrypt.compare(answer, question.answer);
@@ -62,6 +81,8 @@ const submitAnswer = async (
         },
       });
   }
+
+  return submission;
 };
 
 export { submitAnswer };
