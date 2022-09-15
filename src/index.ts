@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 import { authMiddleware } from "./auth";
 import cors from "cors";
 import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
@@ -8,11 +9,21 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
+app.use(express.static("public"));
 app.use(
   cors({
     origin: "http://localhost:3000",
     optionsSuccessStatus: 200,
     credentials: true,
+  })
+);
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(undefined, {
+    swaggerOptions: {
+      url: "/swagger.json",
+    },
   })
 );
 
