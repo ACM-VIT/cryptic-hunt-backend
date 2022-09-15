@@ -4,8 +4,21 @@ import { prisma } from "../../prisma/prisma";
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
   const questionGroups = await prisma.questionGroup.findMany({
-    include: {
-      questions: true,
+    select: {
+      description: true,
+      id: true,
+      isSequence: true,
+      name: true,
+      numberOfQuestions: true,
+      questions: {
+        select: {
+          answer: false,
+          description: true,
+          pointsAwarded: true,
+          seq: true,
+          title: true,
+        },
+      },
     },
   });
   console.log(questionGroups);
