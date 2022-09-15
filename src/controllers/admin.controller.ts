@@ -1,22 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, QuestionGroup, Question, Prisma } from "@prisma/client";
 import { getFiles } from "../firebase/utils";
-
-interface QuestionGroup {
-  id?: string;
-  name: string;
-  description: string;
-  questions: Question[];
-  isMultiple: boolean;
-  isSequence: boolean;
-}
-
-interface Question {
-  seq: number;
-  title: string;
-  description: string;
-  answer: string;
-  pointsAwarded: number;
-}
 
 // Truncate the database
 const truncate = async () => {
@@ -25,17 +8,24 @@ const truncate = async () => {
   await prisma.question.deleteMany({});
 };
 
-const uploadQuestionGroup = async (questionGroup: QuestionGroup) => {
+type UploadQuestionMethodType = Omit<
+  Prisma.QuestionGroupCreateInput,
+  "questions"
+> & {
+  questions: Prisma.QuestionCreateManyQuestionGroupInput[];
+};
+
+const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
   const prisma = new PrismaClient();
-  const { name, description, questions, isMultiple, isSequence } =
+  const { name, description, isSequence, numberOfQuestions, questions } =
     questionGroup;
 
   const response = await prisma.questionGroup.create({
     data: {
-      name: name,
-      description: description,
-      isMultiple: isMultiple,
-      isSequence: isSequence,
+      name,
+      description,
+      isSequence,
+      numberOfQuestions,
       questions: {
         createMany: {
           data: questions,
