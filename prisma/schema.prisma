@@ -5,17 +5,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id          String       @id @default(cuid())
+  id          String       @id
   email       String       @unique
   name        String
   picture     String
@@ -31,17 +27,18 @@ model User {
 }
 
 model Team {
-  id           String       @id @default(cuid())
-  name         String
-  members      User[]       @relation("team")
-  teamLeaderId String       @unique
-  teamLeader   User         @relation("teamLeader", fields: [teamLeaderId], references: [id])
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  points       Int          @default(0)
-  Submission   Submission[]
+  id                      String                    @id @default(cuid())
+  name                    String
+  teamcode                String                    @unique
+  members                 User[]                    @relation("team")
+  teamLeaderId            String                    @unique
+  teamLeader              User                      @relation("teamLeader", fields: [teamLeaderId], references: [id])
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  points                  Int                       @default(0)
+  Submission              Submission[]
+  QuestionGroupSubmission QuestionGroupSubmission[]
 }
-
 model Question {
   seq             Int // int because it will also define the order of questions
   title           String
@@ -56,14 +53,16 @@ model Question {
 }
 
 model QuestionGroup {
-  id          String     @id @default(cuid())
-  name        String
-  description String
-  questions   Question[]
+  id                      String                    @id @default(cuid())
+  name                    String
+  description             String
+  questions               Question[]
   // false represents standalone question, true represents group of questions
-  isMultiple  Boolean
+  numQuestions            Int
   // false represents all questions accessible, true represents only one unsolved question accessible
-  isSequence  Boolean
+  isSequence              Boolean
+  QuestionGroupSubmission QuestionGroupSubmission[]
+  numberOfQuestions       Int
 }
 
 model Submission {
@@ -79,7 +78,19 @@ model Submission {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   isCorrect       Boolean
+}
 
-  // Any team cannot solve the same question twice
-  @@unique([teamId, questionSeq, questionGroupId])
+// many to many relation between question-group and submissions to keep track of completed question groups
+model QuestionGroupSubmission {
+  teamId                String
+  team                  Team          @relation(fields:[teamId],references:[id], onDelete: Cascade)
+  questionGroupId       String
+  questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id])
+  // this gets updated on each submission, I'll write/update that code don't worry
+  // just read this and compare it with questionGroup.numQuestions
+  numQuestionsCompleted Int           @default(0) // number of questions completed in the question group
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@id([teamId, questionGroupId])
 }
