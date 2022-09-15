@@ -38,7 +38,6 @@ model Team {
   Submission              Submission[]
   QuestionGroupSubmission QuestionGroupSubmission[]
 }
-
 model Question {
   seq             Int // int because it will also define the order of questions
   title           String
