@@ -46,10 +46,12 @@ const numQuestionsSolved = async (
 
   // Check team questionGroup submissions
   const questionGroupSubmission =
-    await prisma.questionGroupSubmission.findFirst({
+    await prisma.questionGroupSubmission.findUnique({
       where: {
-        questionGroupId: questionGroup.id,
-        teamId: team.id,
+        teamId_questionGroupId: {
+          teamId: team.id,
+          questionGroupId: questionGroup.id!,
+        },
       },
     });
 
