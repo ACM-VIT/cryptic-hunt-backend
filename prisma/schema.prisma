@@ -83,7 +83,7 @@ model Submission {
 // many to many relation between question-group and submissions to keep track of completed question groups
 model QuestionGroupSubmission {
   teamId                String
-  team                  Team          @relation(fields: [teamId], references: [id])
+  team                  Team          @relation(fields:[teamId],references:[id], onDelete: Cascade)
   questionGroupId       String
   questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id])
   // this gets updated on each submission, I'll write/update that code don't worry
