@@ -20,6 +20,17 @@ export async function createTeam(teamName: string, user_id: string) {
         members: { connect: { id: user_id } },
       },
     });
+    const questionGroups = await prisma.questionGroup.findMany();
+    const questionGroupIds = questionGroups.map((qg) => qg.id);
+    const teamQuestionGroups = questionGroupIds.map((qgId) => {
+      return {
+        teamId: newTeam.id,
+        questionGroupId: qgId,
+      };
+    });
+    await prisma.questionGroupSubmission.createMany({
+      data: teamQuestionGroups,
+    });
     return newTeam;
   } catch (e: any) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -140,6 +151,8 @@ export async function leaveTeam(team_code: string, user_id: string) {
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       throw "an error occured while leaving";
+    } else {
+      throw "an error occured while processing the request";
     }
   }
 }
