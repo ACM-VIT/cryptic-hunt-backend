@@ -1,44 +1,48 @@
-import { PrismaClient } from "@prisma/client";
+import { QuestionGroup, Question, Prisma } from "@prisma/client";
+import {prisma} from '../../prisma/prisma';
 import { getFiles } from "../firebase/utils";
+import bcrypt from "bcrypt";
 
-interface QuestionGroup {
-  id?: string;
-  name: string;
-  description: string;
-  questions: Question[];
-  isMultiple: boolean;
-  isSequence: boolean;
-}
-
-interface Question {
-  seq: number;
-  title: string;
-  description: string;
-  answer: string;
-  pointsAwarded: number;
-}
+const saltRounds = 10;
 
 // Truncate the database
 const truncate = async () => {
-  const prisma = new PrismaClient();
   await prisma.questionGroup.deleteMany({});
   await prisma.question.deleteMany({});
 };
 
-const uploadQuestionGroup = async (questionGroup: QuestionGroup) => {
-  const prisma = new PrismaClient();
-  const { name, description, questions, isMultiple, isSequence } =
+type UploadQuestionMethodType = Omit<
+  Prisma.QuestionGroupCreateInput,
+  "questions"
+> & {
+  questions: Prisma.QuestionCreateManyQuestionGroupInput[];
+};
+
+const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
+  const { name, description, isSequence, numberOfQuestions, questions } =
     questionGroup;
+
+  // Hash each answer and store it in the database
+  const hashedQuestions = await Promise.all(
+    questions.map(async (question) => {
+      const { answer, ...rest } = question;
+      const hashedAnswer = await bcrypt.hash(answer, saltRounds);
+      return {
+        ...rest,
+        answer: hashedAnswer,
+      };
+    })
+  );
 
   const response = await prisma.questionGroup.create({
     data: {
-      name: name,
-      description: description,
-      isMultiple: isMultiple,
-      isSequence: isSequence,
+      name,
+      description,
+      isSequence,
+      numberOfQuestions,
       questions: {
         createMany: {
-          data: questions,
+          data: hashedQuestions,
         },
       },
     },
@@ -46,7 +50,6 @@ const uploadQuestionGroup = async (questionGroup: QuestionGroup) => {
 };
 
 const uploadQuestions = async () => {
-  const prisma = new PrismaClient();
   const questionGroups = await getFiles();
 
   for (const questionGroup of questionGroups) {

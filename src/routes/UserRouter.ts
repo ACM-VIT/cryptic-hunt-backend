@@ -4,6 +4,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { u_req } from "../models/req";
 const prisma = new PrismaClient();
 const user_router = express.Router();
+
 user_router.post("/profile", async (req: u_req, res: Response) => {
   const { gender, rollnumber, phonenumber } = req.body;
   try {
@@ -21,7 +22,9 @@ user_router.post("/profile", async (req: u_req, res: Response) => {
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       console.log(e);
-      return res.status(501).json({ error: "unabele to modify profile details" });
+      return res
+        .status(501)
+        .json({ error: "unabele to modify profile details" });
     }
   }
 });
