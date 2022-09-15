@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 import { authMiddleware } from "./auth";
 import router from "./routes/TeamRouter";
 import adminRouter from "./routes/AdminRouter";
@@ -11,11 +12,21 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
+app.use(express.static("public"));
 app.use(
   cors({
     origin: true,
     optionsSuccessStatus: 200,
     credentials: true,
+  })
+);
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(undefined, {
+    swaggerOptions: {
+      url: "/swagger.json",
+    },
   })
 );
 
