@@ -3,3 +3,4 @@ dist/
 firebase.ts
 *.env*
 package-lock.json
+*-firebase-adminsdk-*

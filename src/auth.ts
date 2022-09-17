@@ -3,6 +3,7 @@ import { User } from "@prisma/client";
 import express from "express";
 import { prisma } from ".";
 import { OAuth2Client } from "google-auth-library";
+import { auth } from "./firebase/firebase";
 const client = new OAuth2Client(process.env.CLIENT_ID);
 
 interface GoogleUserType {
@@ -22,16 +23,19 @@ interface GoogleUserType {
 }
 
 async function verify(token: string) {
-  const ticket = await client.verifyIdToken({
-    idToken: token,
-    audience: process.env.CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
-    // Or, if multiple clients access the backend:
-    //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-  });
-  const payload = ticket.getPayload() as GoogleUserType;
-  // If request specified a G Suite domain:
-  // const domain = payload['hd'];
-  return payload;
+  // const ticket = await client.verifyIdToken({
+  //   idToken: token,
+  //   audience: process.env.CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+  //   // Or, if multiple clients access the backend:
+  //   //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+  // });
+  // const payload = ticket.getPayload() as GoogleUserType;
+  // // If request specified a G Suite domain:
+  // // const domain = payload['hd'];
+  // return payload;
+  const decodedToken = await auth.verifyIdToken(token);
+  console.log(decodedToken);
+  return decodedToken;
 }
 
 export interface AuthRequest extends express.Request {
@@ -70,8 +74,8 @@ export const authMiddleware = async (
         data: {
           id: userGoogle.sub,
           name: userGoogle.name,
-          email: userGoogle.email,
-          picture: userGoogle.picture,
+          email: userGoogle.email!,
+          picture: userGoogle.picture!,
         },
       });
       req.user = newUser;
