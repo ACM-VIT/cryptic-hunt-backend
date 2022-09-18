@@ -100,4 +100,53 @@ const getFinalQuestionGroupList = async (userId: string) => {
   return finalQuestionGroupList;
 };
 
-export { getFinalQuestionGroupList };
+const getQuestionGroupById = async (
+  questionGroupId: string,
+  userId: string
+) => {
+  const questionGroup = await prisma.questionGroup.findUnique({
+    where: {
+      id: questionGroupId,
+    },
+    include: {
+      questions: {
+        select: {
+          answer: false,
+          description: true,
+          pointsAwarded: true,
+          seq: true,
+          title: true,
+        },
+      },
+    },
+  });
+
+  if (!questionGroup) {
+    throw new Error("Question group not found");
+  }
+  // if questionGroup.isSequence = false, return all questions
+  if (!questionGroup.isSequence) {
+    return questionGroup;
+  }
+  // else return only the questions that have been solved
+  const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
+    questionGroup,
+    userId
+  );
+
+  if (typeof numQuestionsSolvedQuestionGroup === "string") {
+    throw new Error(numQuestionsSolvedQuestionGroup);
+  }
+
+  const questions = questionGroup.questions.slice(
+    0,
+    numQuestionsSolvedQuestionGroup
+  );
+
+  return {
+    ...questionGroup,
+    questions,
+  };
+};
+
+export { getFinalQuestionGroupList, getQuestionGroupById };
