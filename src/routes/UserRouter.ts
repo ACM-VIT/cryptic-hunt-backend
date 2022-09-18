@@ -20,7 +20,7 @@ user_router.post("/profile", async (req: AuthRequest, res: Response) => {
       console.log(e);
       return res
         .status(501)
-        .json({ error: "unabele to modify profile details" });
+        .json({ error: "unable to modify profile details" });
     }
   }
 });

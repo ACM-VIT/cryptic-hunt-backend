@@ -70,6 +70,7 @@ const viewTeams = async () => {
       Submission: true,
     },
   });
+  return teams;
 };
 const viewUsers = async () => {
   const users = await prisma.user.findMany({
@@ -79,5 +80,6 @@ const viewUsers = async () => {
       Submission: true,
     },
   });
+  return users;
 };
 export { updateAllQuestions, viewTeams, viewUsers };
