@@ -47,7 +47,7 @@ model Question {
   answer          String
   pointsAwarded   Int
   questionGroupId String
-  QuestionGroup   QuestionGroup @relation(fields: [questionGroupId], references: [id])
+  QuestionGroup   QuestionGroup @relation(fields: [questionGroupId], references: [id], onDelete: Cascade)
   Submission      Submission[]
 
   @@id([seq, questionGroupId])
@@ -67,7 +67,7 @@ model Submission {
   id              String   @id @default(cuid())
   user            User     @relation(fields: [userId], references: [id])
   userId          String
-  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId])
+  question        Question @relation(fields: [questionSeq, questionGroupId], references: [seq, questionGroupId], onDelete: Cascade)
   questionSeq     Int
   questionGroupId String
   teamId          String
@@ -83,7 +83,7 @@ model QuestionGroupSubmission {
   teamId                String
   team                  Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
   questionGroupId       String
-  questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id])
+  questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id], onDelete: Cascade)
   // this gets updated on each submission, I'll write/update that code don't worry
   // just read this and compare it with questionGroup.numQuestions
   numQuestionsCompleted Int           @default(0) // number of questions completed in the question group

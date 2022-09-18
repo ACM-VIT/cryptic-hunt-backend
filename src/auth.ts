@@ -34,7 +34,6 @@ async function verify(token: string) {
   // // const domain = payload['hd'];
   // return payload;
   const decodedToken = await auth.verifyIdToken(token);
-  console.log(decodedToken);
   return decodedToken;
 }
 

@@ -1,5 +1,5 @@
 import { QuestionGroup, Question, Prisma } from "@prisma/client";
-import {prisma} from '../../prisma/prisma';
+import { prisma } from "../../prisma/prisma";
 import { getFiles } from "../firebase/utils";
 import bcrypt from "bcrypt";
 
@@ -7,11 +7,12 @@ const saltRounds = 10;
 
 // Truncate the database
 const truncate = async () => {
-  await prisma.questionGroup.deleteMany({});
   await prisma.question.deleteMany({});
+  await prisma.team.deleteMany({});
+  await prisma.questionGroup.deleteMany({});
 };
 
-type UploadQuestionMethodType = Omit<
+export type UploadQuestionMethodType = Omit<
   Prisma.QuestionGroupCreateInput,
   "questions"
 > & {
@@ -34,7 +35,7 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
     })
   );
 
-  const response = await prisma.questionGroup.create({
+  const qg = await prisma.questionGroup.create({
     data: {
       name,
       description,
@@ -47,6 +48,23 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
       },
     },
   });
+
+  // for each team, create a question group submission for the created question group
+  // with numQuestionsSolved = 0
+  const teams = await prisma.team.findMany();
+  const promises = [];
+  for (const team of teams) {
+    promises.push(
+      prisma.questionGroupSubmission.create({
+        data: {
+          teamId: team.id,
+          questionGroupId: qg.id,
+          numQuestionsCompleted: 0,
+        },
+      })
+    );
+  }
+  await Promise.all(promises);
 };
 
 const uploadQuestions = async () => {
@@ -62,4 +80,4 @@ const updateAllQuestions = async () => {
   await uploadQuestions();
 };
 
-export { updateAllQuestions };
+export { updateAllQuestions, uploadQuestionGroup };

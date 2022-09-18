@@ -52,21 +52,20 @@ const submitAnswer = async (
     },
   });
 
-  const questionGroupSubmission =
-    await prisma.questionGroupSubmission.findUnique({
-      where: {
-        teamId_questionGroupId: {
-          teamId: teamId,
-          questionGroupId: questionGroupId,
-        },
-      },
-    });
-
-  if (!questionGroupSubmission) {
-    return "Question group submission not found";
-  }
-
   if (isCorrect) {
+    const questionGroupSubmission =
+      await prisma.questionGroupSubmission.findUnique({
+        where: {
+          teamId_questionGroupId: {
+            teamId: teamId,
+            questionGroupId: questionGroupId,
+          },
+        },
+      });
+
+    if (!questionGroupSubmission) {
+      return "Question group submission not found";
+    }
     const updateQuestionGroupSubmission =
       await prisma.questionGroupSubmission.update({
         where: {
@@ -80,6 +79,32 @@ const submitAnswer = async (
             questionGroupSubmission.numQuestionsCompleted + 1,
         },
       });
+
+    // add points
+    const team = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+    });
+
+    if (!team) {
+      return "Team not found";
+    }
+
+    const updateTeam = await prisma.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        points: team.points + question.pointsAwarded,
+      },
+    });
+
+    return {
+      submission: submission,
+      questionGroupSubmission: updateQuestionGroupSubmission,
+      team: updateTeam,
+    };
   }
 
   return submission;

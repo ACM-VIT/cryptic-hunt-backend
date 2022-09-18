@@ -10,15 +10,6 @@ const getAllQuestionGroups = async () => {
       isSequence: true,
       name: true,
       numberOfQuestions: true,
-      questions: {
-        select: {
-          answer: false,
-          description: true,
-          pointsAwarded: true,
-          seq: true,
-          title: true,
-        },
-      },
     },
   });
   console.log(questionGroups);
@@ -63,7 +54,7 @@ const numQuestionsSolved = async (
       where: {
         teamId_questionGroupId: {
           teamId: team.id,
-          questionGroupId: questionGroup.id!,
+          questionGroupId: questionGroup.id,
         },
       },
     });
@@ -117,6 +108,9 @@ const getQuestionGroupById = async (
           seq: true,
           title: true,
         },
+        orderBy: {
+          seq: "asc",
+        },
       },
     },
   });
@@ -128,7 +122,7 @@ const getQuestionGroupById = async (
   if (!questionGroup.isSequence) {
     return questionGroup;
   }
-  // else return only the questions that have been solved
+  // else return only the questions that have been solved and one unsolved
   const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
     questionGroup,
     userId
@@ -138,9 +132,8 @@ const getQuestionGroupById = async (
     throw new Error(numQuestionsSolvedQuestionGroup);
   }
 
-  const questions = questionGroup.questions.slice(
-    0,
-    numQuestionsSolvedQuestionGroup
+  const questions = questionGroup.questions.filter(
+    (_question, index) => index <= numQuestionsSolvedQuestionGroup
   );
 
   return {
@@ -149,4 +142,22 @@ const getQuestionGroupById = async (
   };
 };
 
-export { getFinalQuestionGroupList, getQuestionGroupById };
+const deleteQuestionGroup = async (questionGroupId: string) => {
+  const questionGroup = await prisma.questionGroup.findUnique({
+    where: {
+      id: questionGroupId,
+    },
+  });
+
+  if (!questionGroup) {
+    throw new Error("Question group not found");
+  }
+
+  await prisma.questionGroup.delete({
+    where: {
+      id: questionGroupId,
+    },
+  });
+};
+
+export { getFinalQuestionGroupList, getQuestionGroupById, deleteQuestionGroup };
