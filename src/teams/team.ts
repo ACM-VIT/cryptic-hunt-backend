@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 const prisma = new PrismaClient();
 import ShortUniqueId from "short-unique-id";
+const MAX_PARTICIPANTS_POSSIBLE = 4;
 // unique code
 async function getRandomCode() {
   const shortUniqueInstance = new ShortUniqueId({ length: 6 });
@@ -46,6 +47,7 @@ export async function createTeam(teamName: string, user_id: string) {
 // joining a team
 export async function joinTeam(team_code: string, user_id: string) {
   // try {
+  // check if user trying to join is already in a team
   const alreadyMember = await prisma.user.findUnique({
     where: {
       id: user_id,
@@ -55,48 +57,59 @@ export async function joinTeam(team_code: string, user_id: string) {
       teamLeading: true,
     },
   });
-  const teamMember = await prisma.user.findMany({
-    where: {
-      team: {
+  // const teamMember = await prisma.user.findMany({
+  //   where: {
+  //     team: {
+  //       teamcode: team_code,
+  //     },
+  //   },
+  // });
+  try {
+    const team = await prisma.team.findUnique({
+      where: {
         teamcode: team_code,
       },
-    },
-  });
-  if (alreadyMember?.teamId !== null) {
-    // not throwing error here
-    throw Error("user is already a part of team");
-  }
-  if (teamMember.length >= 4) {
-    // not throwing error here
-    throw Error("the team already has maximum participants");
-  } else {
-    const joinTeam = await prisma.user.update({
-      where: {
-        id: user_id,
-      },
-      data: {
-        team: {
-          connect: {
-            teamcode: team_code,
-          },
-        },
+      include: {
+        members: true,
       },
     });
-    return joinTeam;
+    if (!team) {
+      throw new Error("Team not found");
+    }
+    if (alreadyMember?.teamId !== null) {
+      // not throwing error here
+      throw Error("user is already a part of team");
+    }
+    if (team.members.length >= MAX_PARTICIPANTS_POSSIBLE) {
+      // not throwing error here
+      throw Error("the team already has maximum participants");
+    } else {
+      const joinTeam = await prisma.user.update({
+        where: {
+          id: user_id,
+        },
+        data: {
+          team: {
+            connect: {
+              teamcode: team_code,
+            },
+          },
+        },
+      });
+      return joinTeam;
+    }
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error("something went wrong");
   }
-  // } catch (e) {
-  //   if (e instanceof Prisma.PrismaClientKnownRequestError) {
-  //     if (e.code === "P2025") {
-  //       throw "no team like this exists";
-  //     } else throw "error occured while joining team";
-  //   }
-  // }
 }
 
 // leaving a team
 export async function leaveTeam(user_id: string) {
   try {
-    const alreadyMember = await prisma.user.findUnique({
+    const currentUser = await prisma.user.findUnique({
       where: {
         id: user_id,
       },
@@ -106,12 +119,12 @@ export async function leaveTeam(user_id: string) {
         team: true,
       },
     });
-    if (alreadyMember?.teamId === null) {
+    if (currentUser?.teamId === null) {
       throw new Error("User is not a part of a team"); // not throwing error here
     } else {
       // find team_code from team id
-      const team_code = alreadyMember?.team?.teamcode;
-      if (alreadyMember?.teamLeading !== null) {
+      const team_code = currentUser?.team?.teamcode;
+      if (currentUser?.teamLeading !== null) {
         const userTeam = await prisma.user.findMany({
           where: {
             team: {
