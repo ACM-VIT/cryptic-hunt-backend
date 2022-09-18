@@ -31,7 +31,7 @@ router.post("/jointeam", async (req: AuthRequest, res) => {
     }
   }
 });
-router.delete("/team", async (req: AuthRequest, res) => {
+router.delete("/", async (req: AuthRequest, res) => {
   const userid = req.user!.id;
   try {
     const leave = await leaveTeam(userid);
@@ -42,7 +42,7 @@ router.delete("/team", async (req: AuthRequest, res) => {
     }
   }
 });
-router.get("/team", async (req: AuthRequest, res) => {
+router.get("/", async (req: AuthRequest, res) => {
   const id = req.user!.id;
   const user = await prisma.user.findUnique({
     where: {
