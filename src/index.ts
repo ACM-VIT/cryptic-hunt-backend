@@ -5,6 +5,7 @@ import { authMiddleware } from "./auth";
 import teamsRouter from "./routes/TeamRouter";
 import adminRouter from "./routes/AdminRouter";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import cors from "cors";
 import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
@@ -19,6 +20,8 @@ Sentry.init({ dsn: process.env.SENTRY_DSN });
 
 // The request handler must be the first middleware on the app
 app.use(Sentry.Handlers.requestHandler());
+
+app.use(helmet());
 
 app.use(express.json());
 app.use(express.static("public"));
