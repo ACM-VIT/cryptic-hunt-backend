@@ -67,4 +67,19 @@ router.get("/", async (req: AuthRequest, res) => {
   return res.status(404).json({ error: "user not in team" });
 });
 
+// leaderboard, top 10 teams by points and updatedAt
+router.get("/leaderboard", async (req, res) => {
+  const teams = await prisma.team.findMany({
+    take: 10,
+    orderBy: [
+      { points: "desc" },
+      {
+        updatedAt: "asc",
+      },
+    ],
+  });
+
+  return res.json(teams);
+});
+
 export default router;
