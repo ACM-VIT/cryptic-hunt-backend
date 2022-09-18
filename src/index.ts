@@ -62,18 +62,8 @@ app.use(
 
 app.use(adminRouter);
 export const prisma = new PrismaClient();
-// app.post(`/signup`, async (req, res) => {
-//   const { name, email } = req.body;
-//   const result = await prisma.user.create({
-//     data: {
-//       name,
-//       email,
-//     },
-//   });
-//   res.json(result);
-// });
 
-// / route
+// health route
 app.get("/", (req, res) => {
   return res.status(200).json({
     message: "online",
