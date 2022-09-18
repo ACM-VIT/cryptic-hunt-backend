@@ -1,4 +1,4 @@
-import { QuestionGroup, Question, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma/prisma";
 import { getFiles } from "../firebase/utils";
 import bcrypt from "bcrypt";
@@ -80,4 +80,24 @@ const updateAllQuestions = async () => {
   await uploadQuestions();
 };
 
-export { updateAllQuestions, uploadQuestionGroup };
+const viewTeams = async () => {
+  const teams = await prisma.team.findMany({
+    include: {
+      members: true,
+      teamLeader: true,
+      Submission: true,
+    },
+  });
+  return teams;
+};
+const viewUsers = async () => {
+  const users = await prisma.user.findMany({
+    include: {
+      team: true,
+      teamLeading: true,
+      Submission: true,
+    },
+  });
+  return users;
+};
+export { updateAllQuestions, viewTeams, viewUsers, uploadQuestionGroup };

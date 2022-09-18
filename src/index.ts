@@ -60,7 +60,7 @@ app.use(
   })
 );
 
-app.use(adminRouter);
+app.use("/admin", adminRouter);
 export const prisma = new PrismaClient();
 
 // health route
