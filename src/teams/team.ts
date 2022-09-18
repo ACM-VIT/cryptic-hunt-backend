@@ -45,56 +45,56 @@ export async function createTeam(teamName: string, user_id: string) {
 
 // joining a team
 export async function joinTeam(team_code: string, user_id: string) {
-  try {
-    const alreadyMember = await prisma.user.findUnique({
+  // try {
+  const alreadyMember = await prisma.user.findUnique({
+    where: {
+      id: user_id,
+    },
+    select: {
+      teamId: true,
+      teamLeading: true,
+    },
+  });
+  const teamMember = await prisma.user.findMany({
+    where: {
+      team: {
+        teamcode: team_code,
+      },
+    },
+  });
+  if (alreadyMember?.teamId !== null) {
+    // not throwing error here
+    throw Error("user is already a part of team");
+  }
+  if (teamMember.length >= 4) {
+    // not throwing error here
+    throw Error("the team already has maximum participants");
+  } else {
+    const joinTeam = await prisma.user.update({
       where: {
         id: user_id,
       },
-      select: {
-        teamId: true,
-        teamLeading: true,
-      },
-    });
-    const teamMember = await prisma.user.findMany({
-      where: {
+      data: {
         team: {
-          teamcode: team_code,
-        },
-      },
-    });
-    if (alreadyMember?.teamId !== null) {
-      // not throwing error here
-      throw Error("user is already a part of team");
-    }
-    if (teamMember.length >= 4) {
-      // not throwing error here
-      throw Error("the team already has maximum participants");
-    } else {
-      const joinTeam = await prisma.user.update({
-        where: {
-          id: user_id,
-        },
-        data: {
-          team: {
-            connect: {
-              teamcode: team_code,
-            },
+          connect: {
+            teamcode: team_code,
           },
         },
-      });
-      return joinTeam;
-    }
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2025") {
-        throw "no team like this exists";
-      }
-    }
+      },
+    });
+    return joinTeam;
   }
+  // } catch (e) {
+  //   if (e instanceof Prisma.PrismaClientKnownRequestError) {
+  //     if (e.code === "P2025") {
+  //       throw "no team like this exists";
+  //     } else throw "error occured while joining team";
+  //   }
+  // }
 }
 
 // leaving a team
-export async function leaveTeam(team_code: string, user_id: string) {
+export async function leaveTeam(user_id: string) {
   try {
     const alreadyMember = await prisma.user.findUnique({
       where: {
@@ -103,11 +103,14 @@ export async function leaveTeam(team_code: string, user_id: string) {
       select: {
         teamId: true,
         teamLeading: true,
+        team: true,
       },
     });
     if (alreadyMember?.teamId === null) {
       throw new Error("User is not a part of a team"); // not throwing error here
     } else {
+      // find team_code from team id
+      const team_code = alreadyMember?.team?.teamcode;
       if (alreadyMember?.teamLeading !== null) {
         const userTeam = await prisma.user.findMany({
           where: {
