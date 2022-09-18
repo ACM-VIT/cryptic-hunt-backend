@@ -166,6 +166,9 @@ export async function findTeam(team_code: string) {
     where: {
       teamcode: team_code,
     },
+    include: {
+      members: true,
+    },
   });
   return team;
 }
