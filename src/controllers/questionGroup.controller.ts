@@ -1,5 +1,5 @@
 import { QuestionGroup } from "@prisma/client";
-import { prisma } from "../../prisma/prisma";
+import { prisma } from "..";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
@@ -12,7 +12,6 @@ const getAllQuestionGroups = async () => {
       numberOfQuestions: true,
     },
   });
-  console.log(questionGroups);
   return questionGroups;
 };
 

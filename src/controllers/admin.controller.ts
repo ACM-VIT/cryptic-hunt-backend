@@ -1,15 +1,16 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "../../prisma/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { prisma } from "..";
 import { getFiles } from "../firebase/utils";
 import bcrypt from "bcrypt";
 
 const saltRounds = 10;
 
 // Truncate the database
-const truncate = async () => {
-  await prisma.question.deleteMany({});
-  await prisma.team.deleteMany({});
-  await prisma.questionGroup.deleteMany({});
+const truncate = async (tc?: Prisma.TransactionClient) => {
+  const client = tc || prisma;
+  await client.question.deleteMany({});
+  await client.questionGroupSubmission.deleteMany({});
+  await client.questionGroup.deleteMany({});
 };
 
 export type UploadQuestionMethodType = Omit<
@@ -19,9 +20,14 @@ export type UploadQuestionMethodType = Omit<
   questions: Prisma.QuestionCreateManyQuestionGroupInput[];
 };
 
-const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
+const uploadQuestionGroup = async (
+  questionGroup: UploadQuestionMethodType,
+  tc?: Prisma.TransactionClient
+) => {
   const { name, description, isSequence, numberOfQuestions, questions } =
     questionGroup;
+
+  const client = tc || prisma;
 
   // Hash each answer and store it in the database
   const hashedQuestions = await Promise.all(
@@ -35,7 +41,7 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
     })
   );
 
-  const qg = await prisma.questionGroup.create({
+  const qg = await client.questionGroup.create({
     data: {
       name,
       description,
@@ -50,34 +56,39 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
   });
 
   // for each team, create a question group submission for the created question group
-  // with numQuestionsSolved = 0
-  const teams = await prisma.team.findMany();
-  const promises = [];
+  // with numQuestionsCompleted = 0
+  const teams = await client.team.findMany();
+  // use createMany
+  const qGroupSubmissions: Prisma.QuestionGroupSubmissionCreateManyInput[] = [];
   for (const team of teams) {
-    promises.push(
-      prisma.questionGroupSubmission.create({
-        data: {
-          teamId: team.id,
-          questionGroupId: qg.id,
-          numQuestionsCompleted: 0,
-        },
-      })
-    );
+    qGroupSubmissions.push({
+      teamId: team.id,
+      questionGroupId: qg.id,
+      numQuestionsCompleted: 0,
+    });
   }
+
+  await client.questionGroupSubmission.createMany({
+    data: qGroupSubmissions,
+  });
+};
+
+const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
+  const client = pc || prisma;
+  const questionGroups = await getFiles();
+
+  const promises = questionGroups.map((questionGroup) => {
+    return uploadQuestionGroup(questionGroup, client);
+  });
+
   await Promise.all(promises);
 };
 
-const uploadQuestions = async () => {
-  const questionGroups = await getFiles();
-
-  for (const questionGroup of questionGroups) {
-    uploadQuestionGroup(questionGroup);
-  }
-};
-
 const updateAllQuestions = async () => {
-  await truncate();
-  await uploadQuestions();
+  return await prisma.$transaction(async (pc) => {
+    await truncate(pc);
+    await uploadQuestions(pc);
+  });
 };
 
 const viewTeams = async () => {

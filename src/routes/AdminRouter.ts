@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get("/update", async (req, res) => {
   await updateAllQuestions();
-  return res.send("Updated");
+  return res.json({ message: "Updated" });
 });
 router.get("/users", async (_req: AuthRequest, res) => {
   try {
