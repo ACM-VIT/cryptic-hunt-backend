@@ -90,6 +90,45 @@ const getFinalQuestionGroupList = async (userId: string) => {
   return finalQuestionGroupList;
 };
 
+// Check if user has viewed a question's hint
+const getUserHasViewedHint = async (
+  questionGroupId: string,
+  userId: string,
+  seq: number
+) => {
+  // get user's teamId
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (!user.teamId) {
+    throw new Error("User is not part of a team");
+  }
+
+  // look for record in ViewedHint table
+  const viewedHint = await prisma.viewedHint.findUnique({
+    where: {
+      teamId_questionGroupId_questionSeq: {
+        teamId: user.teamId,
+        questionGroupId,
+        questionSeq: seq,
+      },
+    },
+  });
+
+  return !!viewedHint;
+};
+
+// Get question group by id
 const getQuestionGroupById = async (
   questionGroupId: string,
   userId: string
@@ -102,6 +141,8 @@ const getQuestionGroupById = async (
       questions: {
         select: {
           answer: false,
+          hint: true,
+          costOfHint: true,
           description: true,
           pointsAwarded: true,
           seq: true,
@@ -134,6 +175,18 @@ const getQuestionGroupById = async (
   const questions = questionGroup.questions.filter(
     (_question, index) => index <= numQuestionsSolvedQuestionGroup
   );
+
+  // remove hints for questions that have ViewHint false
+  for (const question of questions) {
+    const userHasViewedHint = await getUserHasViewedHint(
+      questionGroup.id,
+      userId,
+      question.seq
+    );
+    if (!userHasViewedHint) {
+      question.hint = null;
+    }
+  }
 
   return {
     ...questionGroup,

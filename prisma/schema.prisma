@@ -39,6 +39,7 @@ model Team {
   points                  Int                       @default(0)
   Submission              Submission[]
   QuestionGroupSubmission QuestionGroupSubmission[]
+  ViewedHint              ViewedHint[]
 }
 
 model Question {
@@ -48,8 +49,11 @@ model Question {
   answer          String
   pointsAwarded   Int
   questionGroupId String
+  hint            String?
+  costOfHint      Int?
   QuestionGroup   QuestionGroup @relation(fields: [questionGroupId], references: [id], onDelete: Cascade)
   Submission      Submission[]
+  ViewedHint      ViewedHint[]
 
   @@id([seq, questionGroupId])
 }
@@ -92,4 +96,15 @@ model QuestionGroupSubmission {
   updatedAt             DateTime      @updatedAt
 
   @@id([teamId, questionGroupId])
+}
+
+model ViewedHint {
+  teamId          String
+  questionGroupId String
+  questionSeq     Int
+  createdAt       DateTime @default(now())
+  team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  question        Question @relation(fields: [questionGroupId, questionSeq], references: [questionGroupId, seq], onDelete: Cascade)
+
+  @@id([teamId, questionGroupId, questionSeq])
 }
