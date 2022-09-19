@@ -11,6 +11,12 @@ const truncate = async (tc?: Prisma.TransactionClient) => {
   await client.question.deleteMany({});
   await client.questionGroupSubmission.deleteMany({});
   await client.questionGroup.deleteMany({});
+  // set all team's points' 0
+  await client.team.updateMany({
+    data: {
+      points: 0,
+    },
+  });
 };
 
 export type UploadQuestionMethodType = Omit<

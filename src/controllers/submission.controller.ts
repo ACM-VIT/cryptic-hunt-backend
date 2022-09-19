@@ -146,3 +146,81 @@ export {
   getAllSubmissionsForUser,
   getAllSubmissionsForUsersTeamByQuestionGroup,
 };
+
+export const buyHint = async (
+  userId: string,
+  questionGroupId: string,
+  seq: number
+) => {
+  return await prisma.$transaction(async (transactionClient) => {
+    const question = await transactionClient.question.findUnique({
+      where: {
+        seq_questionGroupId: {
+          questionGroupId: questionGroupId,
+          seq: seq,
+        },
+      },
+    });
+
+    if (!question) {
+      throw new Error("Question not found");
+    }
+
+    const user = await transactionClient.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (!user.teamId) {
+      throw new Error("User is not in a team");
+    }
+
+    const team = await transactionClient.team.findUnique({
+      where: {
+        id: user.teamId,
+      },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    if (!question.costOfHint || !question.hint) {
+      throw new Error("Question does not have a hint");
+    }
+
+    if (team.points < question.costOfHint) {
+      throw new Error("Not enough points to buy hint");
+    }
+
+    const hintSubmission = await transactionClient.viewedHint.create({
+      data: {
+        teamId: team.id,
+        questionGroupId: questionGroupId,
+        questionSeq: seq,
+      },
+    });
+
+    const updateTeam = await transactionClient.team.update({
+      where: {
+        id: team.id,
+      },
+      data: {
+        points: { decrement: question.costOfHint },
+      },
+    });
+
+    if (updateTeam.points < 0) {
+      throw new Error("Not enough points to buy hint");
+    }
+    return {
+      hintSubmission: hintSubmission,
+      team: updateTeam,
+    };
+  });
+};
