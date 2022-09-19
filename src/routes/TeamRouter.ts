@@ -5,6 +5,7 @@ import {
   createTeam,
   joinTeam,
   leaveTeam,
+  getRank,
 } from "../controllers/team.controller";
 const router = express.Router();
 
@@ -62,7 +63,9 @@ router.get("/", async (req: AuthRequest, res) => {
   console.log(id);
   // if user in team, return team, else return 404
   if (user.team) {
-    return res.json(user.team);
+    // Get team rank
+    const teamRank = await getRank(user.team.id);
+    return res.json({ ...user.team, rank: teamRank });
   }
   return res.status(404).json({ error: "user not in team" });
 });

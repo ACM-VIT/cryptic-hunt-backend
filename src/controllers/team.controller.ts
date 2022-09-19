@@ -174,3 +174,39 @@ export async function leaveTeam(user_id: string) {
     }
   }
 }
+
+export async function getRank(team_id: string) {
+  try {
+    const team = await prisma.team.findUnique({
+      where: {
+        id: team_id,
+      },
+      select: {
+        points: true,
+      },
+    });
+    // if points are same than order by time
+    const teams = await prisma.team.findMany({
+      where: {
+        points: {
+          gte: team?.points,
+        },
+      },
+      orderBy: [
+        { points: "desc" },
+        {
+          updatedAt: "asc",
+        },
+      ],
+    });
+    return teams.length;
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      throw "an error occured while getting rank";
+    } else if (e instanceof Error) {
+      throw Error(e.message);
+    } else {
+      throw e;
+    }
+  }
+}
