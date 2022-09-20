@@ -26,14 +26,11 @@ export type UploadQuestionMethodType = Omit<
   questions: Prisma.QuestionCreateManyQuestionGroupInput[];
 };
 
-const uploadQuestionGroup = async (
-  questionGroup: UploadQuestionMethodType,
-  tc?: Prisma.TransactionClient
-) => {
+const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
   const { name, description, isSequence, numberOfQuestions, questions } =
     questionGroup;
 
-  const client = tc || prisma;
+  const client = prisma;
 
   // Hash each answer and store it in the database
   const hashedQuestions = await Promise.all(
@@ -83,11 +80,15 @@ const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
   const client = pc || prisma;
   const questionGroups = await getFiles();
 
-  const promises = questionGroups.map((questionGroup) => {
-    return uploadQuestionGroup(questionGroup, client);
-  });
+  // const promises = questionGroups.map(async (questionGroup) => {
+  //   return await uploadQuestionGroup(questionGroup, client);
+  // });
 
-  await Promise.all(promises);
+  // await Promise.all(promises);
+
+  for (const questionGroup of questionGroups) {
+    await uploadQuestionGroup(questionGroup);
+  }
 };
 
 const updateAllQuestions = async () => {

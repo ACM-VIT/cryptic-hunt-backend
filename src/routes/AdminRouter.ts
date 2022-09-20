@@ -9,8 +9,12 @@ import {
 const router = express.Router();
 
 router.get("/update", async (req, res) => {
-  await updateAllQuestions();
-  return res.json({ message: "Updated" });
+  try {
+    await updateAllQuestions();
+    return res.json({ message: "Updated" });
+  } catch (e) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 router.get("/users", async (_req: AuthRequest, res) => {
   try {

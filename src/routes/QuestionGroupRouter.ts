@@ -43,12 +43,24 @@ router.get("/:id", async (req: AuthRequest, res: express.Response) => {
       message: "User not found",
     });
   }
-
-  const specificQuestionGroup = await getQuestionGroupById(
-    req.params.id,
-    req.user.id
-  );
-  return res.json(specificQuestionGroup);
+  try {
+    const specificQuestionGroup = await getQuestionGroupById(
+      req.params.id,
+      req.user.id
+    );
+    return res.json(specificQuestionGroup);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "Question group not found") {
+        return res.status(404).json({
+          message: error.message,
+        });
+      }
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
 });
 
 // CREATE question group
@@ -109,14 +121,25 @@ router.post("/", async (req: AuthRequest, res: express.Response) => {
       });
     }
   }
-
-  await uploadQuestionGroup({
-    name,
-    description,
-    questions,
-    isSequence,
-    numberOfQuestions: questions.length,
-  });
+  try {
+    await uploadQuestionGroup({
+      name,
+      description,
+      questions,
+      isSequence,
+      numberOfQuestions: questions.length,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    } else {
+      return res.status(500).json({
+        message: "Unknown error",
+      });
+    }
+  }
 
   return res.sendStatus(201);
 });
