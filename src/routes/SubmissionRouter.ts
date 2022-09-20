@@ -54,14 +54,14 @@ router.post("/submit", async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    res.json(response);
+    return res.json(response);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({
+      return res.status(400).json({
         message: error.message,
       });
     } else {
-      res.status(400).json({
+      return res.status(400).json({
         message: "Something went wrong",
       });
     }
