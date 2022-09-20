@@ -1,4 +1,4 @@
-FROM node:15.3.0-alpine3.10
+FROM node:16
 
 # Create Directory for the Container
 WORKDIR /usr/src/app
@@ -13,7 +13,7 @@ RUN npm i
 COPY . .
 
 # Migrate Prisma
-RUN npx prisma db push
+RUN npx prisma generate
 
 # run the server
 CMD ["npm", "start"] 
