@@ -3,15 +3,7 @@ import { prisma } from "..";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
-  const questionGroups = await prisma.questionGroup.findMany({
-    select: {
-      description: true,
-      id: true,
-      isSequence: true,
-      name: true,
-      numberOfQuestions: true,
-    },
-  });
+  const questionGroups = await prisma.questionGroup.findMany();
   return questionGroups;
 };
 
@@ -66,6 +58,21 @@ const numQuestionsSolved = async (
   return numQuestionsSolved;
 };
 
+// get current phase score
+const getCurrentPhaseScore = async () => {
+  const currentPhase = await prisma.liveConfig.findFirst({
+    select: {
+      phaseScore: true,
+    },
+  });
+
+  if (!currentPhase) {
+    throw new Error("Current phase not found");
+  }
+
+  return currentPhase.phaseScore;
+};
+
 // Return a list of questionGroups that have an isSolved property with each object
 const getFinalQuestionGroupList = async (userId: string) => {
   const questionGroups = await getAllQuestionGroups();
@@ -78,7 +85,7 @@ const getFinalQuestionGroupList = async (userId: string) => {
     );
 
     if (typeof numQuestionsSolvedQuestionGroup === "string") {
-      return numQuestionsSolvedQuestionGroup;
+      throw new Error(numQuestionsSolvedQuestionGroup);
     }
 
     finalQuestionGroupList.push({
@@ -87,7 +94,16 @@ const getFinalQuestionGroupList = async (userId: string) => {
     });
   }
 
-  return finalQuestionGroupList;
+  const currentPhaseScore = await getCurrentPhaseScore();
+
+  // OPTIONAL FEATURE - sort the question groups by the number of questions solved
+
+  // filter according to phase score
+  const filteredQuestionGroups = finalQuestionGroupList.filter(
+    (questionGroup) => questionGroup.minimumPhaseScore <= currentPhaseScore
+  );
+
+  return filteredQuestionGroups;
 };
 
 // Check if user has viewed a question's hint

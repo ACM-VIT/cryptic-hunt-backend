@@ -17,16 +17,23 @@ router.get("/", async (req: AuthRequest, res: express.Response) => {
       message: "User not found",
     });
   }
+  try {
+    const questionGroupList = await getFinalQuestionGroupList(req.user.id);
 
-  const questionGroupList = await getFinalQuestionGroupList(req.user.id);
+    if (typeof questionGroupList === "string") {
+      return res.status(400).json({
+        message: questionGroupList,
+      });
+    }
 
-  if (typeof questionGroupList === "string") {
-    return res.status(400).json({
-      message: questionGroupList,
-    });
+    res.json(questionGroupList);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({
+        message: error.message,
+      });
+    }
   }
-
-  res.json(questionGroupList);
 });
 
 // GET question group by id

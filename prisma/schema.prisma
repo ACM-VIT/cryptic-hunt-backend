@@ -63,8 +63,9 @@ model QuestionGroup {
   name                    String
   numberOfQuestions       Int
   description             String
-  questions               Question[]
   isSequence              Boolean
+  minimumPhaseScore       Int                       @default(0)
+  questions               Question[]
   QuestionGroupSubmission QuestionGroupSubmission[]
 }
 
@@ -107,4 +108,11 @@ model ViewedHint {
   question        Question @relation(fields: [questionGroupId, questionSeq], references: [questionGroupId, seq], onDelete: Cascade)
 
   @@id([teamId, questionGroupId, questionSeq])
+}
+
+model LiveConfig {
+  id         String   @id @default(cuid())
+  phaseScore Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
