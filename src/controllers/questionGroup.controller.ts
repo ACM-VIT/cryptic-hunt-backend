@@ -299,4 +299,23 @@ const deleteQuestionGroup = async (questionGroupId: string) => {
   });
 };
 
-export { getFinalQuestionGroupList, getQuestionGroupById, deleteQuestionGroup };
+const getCurrentPhase = async () => {
+  const currentPhase = await prisma.liveConfig.findFirst({
+    select: {
+      phaseScore: true,
+    },
+  });
+
+  if (!currentPhase) {
+    throw new Error("No current phase");
+  }
+
+  return currentPhase;
+};
+
+export {
+  getFinalQuestionGroupList,
+  getQuestionGroupById,
+  deleteQuestionGroup,
+  getCurrentPhase,
+};
