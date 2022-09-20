@@ -1,15 +1,16 @@
 import { prisma } from "..";
-import express from "express";
-import { AuthRequest } from "../auth";
+import { AuthRequest } from "../types/AuthRequest.type";
+import { Response, Router } from "express";
 import {
   createTeam,
   joinTeam,
   leaveTeam,
   getRank,
 } from "../controllers/team.controller";
-const router = express.Router();
 
-router.post("/createteam", async (req: AuthRequest, res) => {
+const router = Router();
+
+router.post("/createteam", async (req: AuthRequest, res: Response) => {
   try {
     const { teamname } = req.body;
     const userid = req.user!.id;
@@ -20,7 +21,7 @@ router.post("/createteam", async (req: AuthRequest, res) => {
     return res.status(409).json({ error: error });
   }
 });
-router.post("/jointeam", async (req: AuthRequest, res) => {
+router.post("/jointeam", async (req: AuthRequest, res: Response) => {
   const { teamcode } = req.body;
   const userid = req.user!.id;
   try {
@@ -32,7 +33,7 @@ router.post("/jointeam", async (req: AuthRequest, res) => {
     }
   }
 });
-router.delete("/", async (req: AuthRequest, res) => {
+router.delete("/", async (req: AuthRequest, res: Response) => {
   const userid = req.user!.id;
   try {
     const leave = await leaveTeam(userid);
@@ -43,7 +44,7 @@ router.delete("/", async (req: AuthRequest, res) => {
     }
   }
 });
-router.get("/", async (req: AuthRequest, res) => {
+router.get("/", async (req: AuthRequest, res: Response) => {
   const id = req.user!.id;
   const user = await prisma.user.findUnique({
     where: {
@@ -71,7 +72,7 @@ router.get("/", async (req: AuthRequest, res) => {
 });
 
 // leaderboard, top 10 teams by points and updatedAt
-router.get("/leaderboard", async (req, res) => {
+router.get("/leaderboard", async (req: AuthRequest, res: Response) => {
   const teams = await prisma.team.findMany({
     take: 10,
     orderBy: [

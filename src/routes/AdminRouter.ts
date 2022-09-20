@@ -1,14 +1,14 @@
-import express from "express";
-import { AuthRequest } from "../auth";
+import { Response, Router } from "express";
+import { AuthRequest } from "../types/AuthRequest.type";
 import {
   updateAllQuestions,
   viewTeams,
   viewUsers,
 } from "../controllers/admin.controller";
 
-const router = express.Router();
+const router = Router();
 
-router.get("/update", async (req, res) => {
+router.get("/update", async (req: AuthRequest, res: Response) => {
   try {
     await updateAllQuestions();
     return res.json({ message: "Updated" });
@@ -16,7 +16,7 @@ router.get("/update", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-router.get("/users", async (_req: AuthRequest, res) => {
+router.get("/users", async (req: AuthRequest, res: Response) => {
   try {
     return res.json(await viewUsers());
   } catch (e) {
@@ -25,7 +25,7 @@ router.get("/users", async (_req: AuthRequest, res) => {
     }
   }
 });
-router.get("/teams", async (_req: AuthRequest, res) => {
+router.get("/teams", async (req: AuthRequest, res: Response) => {
   try {
     return res.json(await viewTeams());
   } catch (e) {

@@ -1,11 +1,11 @@
-import { Response } from "express";
-import express from "express";
+import { Response, Router } from "express";
+import { AuthRequest } from "../types/AuthRequest.type";
 import { Prisma } from "@prisma/client";
 import { prisma } from "..";
-import { AuthRequest } from "../auth";
-const user_router = express.Router();
 
-user_router.post("/profile", async (req: AuthRequest, res: Response) => {
+const router = Router();
+
+router.post("/profile", async (req: AuthRequest, res: Response) => {
   const { gender, rollNo, phoneNo } = req.body;
   try {
     const user_signup = await prisma.user.update({
@@ -25,7 +25,7 @@ user_router.post("/profile", async (req: AuthRequest, res: Response) => {
   }
 });
 
-user_router.get("/profile", async (req: AuthRequest, res: Response) => {
+router.get("/profile", async (req: AuthRequest, res: Response) => {
   try {
     const userProfile = await prisma.user.findUnique({
       where: {
@@ -45,4 +45,4 @@ user_router.get("/profile", async (req: AuthRequest, res: Response) => {
     }
   }
 });
-export default user_router;
+export default router;

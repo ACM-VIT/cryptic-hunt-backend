@@ -1,17 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
-import { authMiddleware } from "./auth";
+
+// Middlewares
+import { adminMiddleware } from "./middleware/admin.middleware";
+import { authMiddleware } from "./middleware/auth.middleware";
+
+// Routers
 import teamsRouter from "./routes/TeamRouter";
 import adminRouter from "./routes/AdminRouter";
+
+// Routers
+import usersRouter from "./routes/UserRouter";
+import submissionsRouter from "./routes/SubmissionRouter";
+import questionGroupsRouter from "./routes/QuestionGroupRouter";
+
+// Security
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
 import cors from "cors";
 import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-import usersRouter from "./routes/UserRouter";
-import submissionsRouter from "./routes/SubmissionRouter";
-import questionGroupsRouter from "./routes/QuestionGroupRouter";
 dotenv.config();
 
 const app = express();
@@ -60,7 +69,7 @@ app.use(
   })
 );
 
-app.use("/admin", adminRouter);
+app.use("/admin", adminMiddleware, adminRouter);
 export const prisma = new PrismaClient();
 
 // health route
