@@ -4,6 +4,7 @@ import { AuthRequest } from "../auth";
 import { uploadQuestionGroup } from "../controllers/admin.controller";
 import {
   deleteQuestionGroup,
+  getCurrentPhase,
   getFinalQuestionGroupList,
   getQuestionGroupById,
 } from "../controllers/questionGroup.controller";
@@ -35,6 +36,28 @@ router.get("/", async (req: AuthRequest, res: express.Response) => {
     }
   }
 });
+
+// GET current phase
+router.get(
+  "/current-phase",
+  async (req: AuthRequest, res: express.Response) => {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    try {
+      const currentPhase = await getCurrentPhase();
+
+      return res.status(200).json(currentPhase);
+    } catch (error) {
+      return res.status(500).json({
+        message: `An error occuured :(`,
+      });
+    }
+  }
+);
 
 // GET question group by id
 router.get("/:id", async (req: AuthRequest, res: express.Response) => {
