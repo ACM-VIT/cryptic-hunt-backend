@@ -1,7 +1,7 @@
 import express from "express";
 import { prisma } from "..";
 import { Prisma } from "@prisma/client";
-import { AuthRequest } from "../auth";
+import { AuthRequest } from "../types/AuthRequest.type";
 const router = express.Router();
 import { verifyUser, readCsv } from "../controllers/verify.controllers";
 
