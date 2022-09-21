@@ -116,3 +116,9 @@ model LiveConfig {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+model Whitelist {
+  email     String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

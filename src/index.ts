@@ -11,6 +11,7 @@ import cors from "cors";
 import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import usersRouter from "./routes/UserRouter";
 import submissionsRouter from "./routes/SubmissionRouter";
+import verifyRouter from "./routes/VerifyRouter";
 import questionGroupsRouter from "./routes/QuestionGroupRouter";
 dotenv.config();
 
@@ -80,6 +81,7 @@ app.use("/teams", teamsRouter);
 app.use("/users", usersRouter);
 app.use("/submissions", submissionsRouter);
 app.use("/questiongroups", questionGroupsRouter);
+app.use("/verify", verifyRouter);
 
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");

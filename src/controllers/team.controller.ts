@@ -1,5 +1,5 @@
-import { PrismaClient, Prisma } from "@prisma/client";
-const prisma = new PrismaClient();
+import { Prisma } from "@prisma/client";
+import { prisma } from "..";
 import ShortUniqueId from "short-unique-id";
 const MAX_PARTICIPANTS_POSSIBLE = 4;
 // unique code
