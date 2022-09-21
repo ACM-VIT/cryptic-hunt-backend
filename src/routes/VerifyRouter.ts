@@ -3,20 +3,24 @@ import { prisma } from "..";
 import { Prisma } from "@prisma/client";
 import { AuthRequest } from "../types/AuthRequest.type";
 const router = express.Router();
-import { readCsv } from "../controllers/verify.controllers";
+import { readCsv, Record } from "../controllers/verify.controllers";
+
+interface EmailType {
+  email: string;
+}
 
 router.post("/whitelist", async (req: AuthRequest, res) => {
   try {
     const { emails } = req.body;
-    let emails_arr: any[] = [];
+    let emails_arr: EmailType[] = [];
     emails.forEach((item: string) => {
-      let obj = { email: "" };
+      let obj: EmailType = { email: "" };
       obj["email"] = item;
       emails_arr.push(obj);
     });
-    const records: any = await readCsv();
-    const user = records.find(
-      (record: any) => record.email === req.user!.email
+    const records = await readCsv();
+    const user: any = records.find(
+      (record: Record) => record.email === req.user!.email
     );
     const len = user.paid / 250 - 1;
     if (len < emails_arr.length) {
@@ -52,7 +56,7 @@ router.post("/whitelist", async (req: AuthRequest, res) => {
 router.get("/whitelist", async (req: AuthRequest, res) => {
   const whitelist = await prisma.whitelist.findMany();
   const listemail: string[] = [];
-  whitelist.forEach(async (element: any) => {
+  whitelist.forEach((element) => {
     listemail.push(element.email);
   });
   return res.json({ whitelist: listemail });
