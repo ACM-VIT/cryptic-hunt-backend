@@ -1,4 +1,4 @@
-import { Response, Router } from "express";
+import e, { Response, Router } from "express";
 import { AuthRequest } from "../types/AuthRequest.type";
 import {
   buyHint,
