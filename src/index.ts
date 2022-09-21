@@ -8,6 +8,7 @@ import { authMiddleware } from "./middleware/auth.middleware";
 // Routers
 import teamsRouter from "./routes/TeamRouter";
 import adminRouter from "./routes/AdminRouter";
+import verifyRouter from "./routes/VerifyRouter";
 
 // Routers
 import usersRouter from "./routes/UserRouter";
@@ -89,6 +90,7 @@ app.use("/teams", teamsRouter);
 app.use("/users", usersRouter);
 app.use("/submissions", submissionsRouter);
 app.use("/questiongroups", questionGroupsRouter);
+app.use("/verify", verifyRouter);
 
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
