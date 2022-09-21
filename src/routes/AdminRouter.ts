@@ -5,7 +5,8 @@ import {
   viewTeams,
   viewUsers,
 } from "../controllers/admin.controller";
-
+import { readCsv } from "../controllers/verify.controllers";
+import { prisma } from "..";
 const router = Router();
 
 router.get("/update", async (req: AuthRequest, res: Response) => {
@@ -34,5 +35,18 @@ router.get("/teams", async (req: AuthRequest, res: Response) => {
     }
   }
 });
-
+router.get("/whitelistupdate", async (req, res) => {
+  const users: any = await readCsv();
+  const user = users.forEach(async (user: any) => {
+    await prisma.whitelist.createMany({
+      data: [
+        {
+          email: user.email,
+        },
+      ],
+      skipDuplicates: true,
+    });
+  });
+  res.json({ message: "done" });
+});
 export default router;

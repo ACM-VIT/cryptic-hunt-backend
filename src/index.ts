@@ -87,11 +87,11 @@ app.use(authMiddleware);
 //   const users = await prisma.user.findMany();
 //   res.json(users);
 // });
-app.use("/teams", teamsRouter);
-app.use("/users", usersRouter);
-app.use("/submissions", submissionsRouter);
-app.use("/questiongroups", questionGroupsRouter);
-app.use("/verify", verifyRouter);
+app.use("/teams", whitelistMiddleware, teamsRouter);
+app.use("/users", whitelistMiddleware, usersRouter);
+app.use("/submissions", whitelistMiddleware, submissionsRouter);
+app.use("/questiongroups", whitelistMiddleware, questionGroupsRouter);
+app.use("/verify", whitelistMiddleware, verifyRouter);
 
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");

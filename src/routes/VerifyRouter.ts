@@ -5,20 +5,6 @@ import { AuthRequest } from "../types/AuthRequest.type";
 const router = express.Router();
 import { readCsv } from "../controllers/verify.controllers";
 
-router.get("/update", async (req, res) => {
-  const users: any = await readCsv();
-  const user = users.forEach(async (user: any) => {
-    await prisma.whitelist.createMany({
-      data: [
-        {
-          email: user.email,
-        },
-      ],
-      skipDuplicates: true,
-    });
-  });
-  res.json({ message: "done" });
-});
 router.post("/whitelist", async (req: AuthRequest, res) => {
   try {
     const { emails } = req.body;
