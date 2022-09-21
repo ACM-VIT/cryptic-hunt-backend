@@ -62,7 +62,7 @@ const numQuestionsSolved = async (
 const getCurrentPhaseScore = async () => {
   const currentPhase = await prisma.liveConfig.findFirst({
     select: {
-      phaseScore: true,
+      currentPhase: true,
     },
   });
 
@@ -70,7 +70,7 @@ const getCurrentPhaseScore = async () => {
     throw new Error("Current phase not found");
   }
 
-  return currentPhase.phaseScore;
+  return currentPhase.currentPhase;
 };
 
 // Return a list of questionGroups that have an isSolved property with each object
@@ -300,11 +300,7 @@ const deleteQuestionGroup = async (questionGroupId: string) => {
 };
 
 const getCurrentPhase = async () => {
-  const currentPhase = await prisma.liveConfig.findFirst({
-    select: {
-      phaseScore: true,
-    },
-  });
+  const currentPhase = await prisma.liveConfig.findFirst({});
 
   if (!currentPhase) {
     throw new Error("No current phase");

@@ -27,11 +27,20 @@ export const adminMiddleware = async (
 
     console.log(userGoogle.email);
     // if user's email is in the list of admins, move forward
-    if (admins?.includes(userGoogle.email!)) {
+    if (!admins) {
+      throw new Error("Admins env not found");
+    }
+    if (admins.includes(userGoogle.email!)) {
       return next();
+    } else {
+      console.log("not admin");
+      throw new Error("User not authorized");
     }
   } catch (error) {
     console.log(error);
+    if (error instanceof Error) {
+      return res.status(401).json({ error: error.message });
+    }
     return res.status(401).json({ message: "Not an Admin, Fuck Off" });
   }
 };

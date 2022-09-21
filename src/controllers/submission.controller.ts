@@ -55,24 +55,23 @@ const submitAnswer = async (
 
     if (isCorrect) {
       try {
-        const updateQuestionGroupSubmission =
-          await transactionClient.questionGroupSubmission.update({
-            where: {
-              teamId_questionGroupId: {
-                teamId: teamId,
-                questionGroupId: questionGroupId,
-              },
+        await transactionClient.questionGroupSubmission.update({
+          where: {
+            teamId_questionGroupId: {
+              teamId: teamId,
+              questionGroupId: questionGroupId,
             },
-            data: {
-              numQuestionsCompleted: {
-                increment: 1,
-              },
+          },
+          data: {
+            numQuestionsCompleted: {
+              increment: 1,
             },
-          });
+          },
+        });
 
         // add points
 
-        const updateTeam = await transactionClient.team.update({
+        await transactionClient.team.update({
           where: {
             id: teamId,
           },
@@ -81,11 +80,7 @@ const submitAnswer = async (
           },
         });
 
-        return {
-          submission: submission,
-          questionGroupSubmission: updateQuestionGroupSubmission,
-          team: updateTeam,
-        };
+        return submission;
       } catch (error) {
         throw new Error("Couldn't submit answer");
       }
@@ -218,9 +213,6 @@ export const buyHint = async (
     if (updateTeam.points < 0) {
       throw new Error("Not enough points to buy hint");
     }
-    return {
-      hintSubmission: hintSubmission,
-      team: updateTeam,
-    };
+    return { ...hintSubmission, hint: question.hint };
   });
 };
