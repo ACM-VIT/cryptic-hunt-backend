@@ -3,6 +3,7 @@ import { AuthRequest } from "../types/AuthRequest.type";
 import { auth } from "../firebase/firebase";
 
 const admins = process.env.ADMINS?.split(",");
+console.log(admins);
 
 async function verify(token: string) {
   const decodedToken = await auth.verifyIdToken(token);

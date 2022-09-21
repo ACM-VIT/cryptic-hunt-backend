@@ -81,8 +81,8 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use(authMiddleware);
-app.use(whitelistMiddleware);
+// app.use(authMiddleware);
+// app.use(whitelistMiddleware);
 
 // app.get("/users", async (req, res) => {
 //   const users = await prisma.user.findMany();
