@@ -1,5 +1,5 @@
-import express from "express";
-import { AuthRequest } from "../auth";
+import { Response, Router } from "express";
+import { AuthRequest } from "../types/AuthRequest.type";
 import {
   buyHint,
   getAllSubmissionsForUser,
@@ -7,10 +7,10 @@ import {
   submitAnswer,
 } from "../controllers/submission.controller";
 
-const router = express.Router();
+const router = Router();
 
 // make submission
-router.post("/submit", async (req: AuthRequest, res: express.Response) => {
+router.post("/submit", async (req: AuthRequest, res: Response) => {
   const { questionGroupId, seq, answer } = req.body;
   const { user } = req;
 
@@ -54,14 +54,14 @@ router.post("/submit", async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    res.json(response);
+    return res.json(response);
   } catch (error) {
     if (error instanceof Error) {
-      res.status(400).json({
+      return res.status(400).json({
         message: error.message,
       });
     } else {
-      res.status(400).json({
+      return res.status(400).json({
         message: "Something went wrong",
       });
     }
@@ -69,7 +69,7 @@ router.post("/submit", async (req: AuthRequest, res: express.Response) => {
 });
 
 // buy hint
-router.post("/buyhint", async (req: AuthRequest, res: express.Response) => {
+router.post("/buyhint", async (req: AuthRequest, res: Response) => {
   const { questionGroupId, seq } = req.body;
   const { user } = req;
 
@@ -106,7 +106,7 @@ router.post("/buyhint", async (req: AuthRequest, res: express.Response) => {
 });
 
 // GET all submissions for a user
-router.get("/", async (req: AuthRequest, res: express.Response) => {
+router.get("/", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
       message: "User not found",
@@ -139,7 +139,7 @@ router.get("/", async (req: AuthRequest, res: express.Response) => {
 });
 
 // GET all submissions for a user's team
-router.get("/team", async (req: AuthRequest, res: express.Response) => {
+router.get("/team", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
       message: "User not found",

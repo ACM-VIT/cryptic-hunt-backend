@@ -1,17 +1,17 @@
-import { QuestionGroup } from "@prisma/client";
-import express from "express";
-import { AuthRequest } from "../auth";
+import { Response, Router } from "express";
+import { AuthRequest } from "../types/AuthRequest.type";
 import { uploadQuestionGroup } from "../controllers/admin.controller";
 import {
   deleteQuestionGroup,
+  getCurrentPhase,
   getFinalQuestionGroupList,
   getQuestionGroupById,
 } from "../controllers/questionGroup.controller";
 
-const router = express.Router();
+const router = Router();
 
 // GET all question groups
-router.get("/", async (req: AuthRequest, res: express.Response) => {
+router.get("/", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
       message: "User not found",
@@ -36,8 +36,27 @@ router.get("/", async (req: AuthRequest, res: express.Response) => {
   }
 });
 
+// GET current phase
+router.get("/current-phase", async (req: AuthRequest, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({
+      message: "User not found",
+    });
+  }
+
+  try {
+    const currentPhase = await getCurrentPhase();
+
+    return res.status(200).json(currentPhase);
+  } catch (error) {
+    return res.status(500).json({
+      message: `An error occuured :(`,
+    });
+  }
+});
+
 // GET question group by id
-router.get("/:id", async (req: AuthRequest, res: express.Response) => {
+router.get("/:id", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
       message: "User not found",
@@ -64,7 +83,7 @@ router.get("/:id", async (req: AuthRequest, res: express.Response) => {
 });
 
 // CREATE question group
-router.post("/", async (req: AuthRequest, res: express.Response) => {
+router.post("/", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
       message: "User not found",
@@ -145,7 +164,7 @@ router.post("/", async (req: AuthRequest, res: express.Response) => {
 });
 
 // DELETE question group
-router.delete("/:id", async (req: AuthRequest, res: express.Response) => {
+router.delete("/:id", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
       message: "User not found",

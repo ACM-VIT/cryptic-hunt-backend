@@ -144,6 +144,63 @@ const getUserHasViewedHint = async (
   return !!viewedHint;
 };
 
+type Question = {
+  hint: string | null;
+  costOfHint: number | null;
+  description: string;
+  pointsAwarded: number;
+  seq: number;
+  title: string;
+  solved: boolean;
+};
+
+// getTeamHasSolvedSpecificQuestion
+const getTeamHasSolvedSpecificQuestion = async (
+  questionGroupId: string,
+  userId: string,
+  seq: number
+) => {
+  // get user's teamId
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (!user.teamId) {
+    throw new Error("User is not part of a team");
+  }
+
+  // look for record in submissions table with correct answer
+  const correctSubmissions = await prisma.submission.findMany({
+    where: {
+      AND: [
+        {
+          teamId: user.teamId,
+        },
+        {
+          questionGroupId,
+        },
+        {
+          questionSeq: seq,
+        },
+        {
+          isCorrect: true,
+        },
+      ],
+    },
+  });
+
+  return correctSubmissions.length > 0;
+};
+
 // Get question group by id
 const getQuestionGroupById = async (
   questionGroupId: string,
@@ -174,26 +231,28 @@ const getQuestionGroupById = async (
   if (!questionGroup) {
     throw new Error("Question group not found");
   }
+
+  let subQuestions: Question[] =
+    questionGroup.questions.map((q) => ({ ...q, solved: false })) || [];
+
   // if questionGroup.isSequence = false, return all questions
-  if (!questionGroup.isSequence) {
-    return questionGroup;
+  if (questionGroup.isSequence) {
+    // else return only the questions that have been solved and one unsolved
+    const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
+      questionGroup,
+      userId
+    );
+
+    if (typeof numQuestionsSolvedQuestionGroup === "string") {
+      throw new Error(numQuestionsSolvedQuestionGroup);
+    }
+
+    subQuestions = subQuestions.filter(
+      (_question, index) => index <= numQuestionsSolvedQuestionGroup
+    );
   }
-  // else return only the questions that have been solved and one unsolved
-  const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
-    questionGroup,
-    userId
-  );
-
-  if (typeof numQuestionsSolvedQuestionGroup === "string") {
-    throw new Error(numQuestionsSolvedQuestionGroup);
-  }
-
-  const questions = questionGroup.questions.filter(
-    (_question, index) => index <= numQuestionsSolvedQuestionGroup
-  );
-
   // remove hints for questions that have ViewHint false
-  for (const question of questions) {
+  for (const question of subQuestions) {
     const userHasViewedHint = await getUserHasViewedHint(
       questionGroup.id,
       userId,
@@ -204,9 +263,21 @@ const getQuestionGroupById = async (
     }
   }
 
+  // add solved property to each question
+  for (const question of subQuestions) {
+    const teamHasSolvedSpecificQuestion =
+      await getTeamHasSolvedSpecificQuestion(
+        questionGroup.id,
+        userId,
+        question.seq
+      );
+
+    question.solved = teamHasSolvedSpecificQuestion;
+  }
+
   return {
     ...questionGroup,
-    questions,
+    questions: subQuestions,
   };
 };
 
@@ -228,4 +299,23 @@ const deleteQuestionGroup = async (questionGroupId: string) => {
   });
 };
 
-export { getFinalQuestionGroupList, getQuestionGroupById, deleteQuestionGroup };
+const getCurrentPhase = async () => {
+  const currentPhase = await prisma.liveConfig.findFirst({
+    select: {
+      phaseScore: true,
+    },
+  });
+
+  if (!currentPhase) {
+    throw new Error("No current phase");
+  }
+
+  return currentPhase;
+};
+
+export {
+  getFinalQuestionGroupList,
+  getQuestionGroupById,
+  deleteQuestionGroup,
+  getCurrentPhase,
+};
