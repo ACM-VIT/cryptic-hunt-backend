@@ -112,10 +112,12 @@ model ViewedHint {
 }
 
 model LiveConfig {
-  id         String   @id @default(cuid())
-  phaseScore Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String   @id @default(cuid())
+  currentPhase  Int      @default(0)
+  changeTrigger Int      @default(0)
+  phaseText     String   @default("Tik Tok event starts from")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Whitelist {
