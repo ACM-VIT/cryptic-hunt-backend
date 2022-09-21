@@ -37,17 +37,27 @@ router.get("/teams", async (req: AuthRequest, res: Response) => {
   }
 });
 router.get("/whitelistupdate", async (req, res) => {
-  const users: Record[] = await readCsv();
-  const user = users.forEach(async (user: Record) => {
+  try {
+    const users: Record[] = await readCsv();
+    // const user = users.forEach(async (user: Record) => {
+    //   await prisma.whitelist.createMany({
+    //     data: [
+    //       {
+    //         email: user.email,
+    //       },
+    //     ],
+    //     skipDuplicates: true,
+    //   });
+    // });
+    // res.json({ message: "done" });
     await prisma.whitelist.createMany({
-      data: [
-        {
-          email: user.email,
-        },
-      ],
+      data: users.map((v) => ({
+        email: v.email,
+      })),
       skipDuplicates: true,
     });
-  });
-  res.json({ message: "done" });
+  } catch (error) {
+    return res.sendStatus(500);
+  }
 });
 export default router;

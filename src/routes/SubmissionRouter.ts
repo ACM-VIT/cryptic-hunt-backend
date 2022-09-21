@@ -158,12 +158,22 @@ router.get("/team", async (req: AuthRequest, res: Response) => {
 
   // typeof qgid === "string" && typeof qseq === "string"
   if (typeof qgid === "string" && typeof qseq === "string") {
-    const submissions = await getAllSubmissionsForUsersTeamByQuestionGroup(
-      id,
-      qgid,
-      parseInt(qseq)
-    );
-    return res.json(submissions);
+    try {
+      const submissions = await getAllSubmissionsForUsersTeamByQuestionGroup(
+        id,
+        qgid,
+        parseInt(qseq)
+      );
+      return res.json(submissions);
+    } catch (error) {
+      if (error instanceof Error) {
+        return res.status(400).json({
+          message: error.message,
+        });
+      } else {
+        return res.sendStatus(500);
+      }
+    }
   } else {
     return res.status(400).json({
       message: "Invalid query",
