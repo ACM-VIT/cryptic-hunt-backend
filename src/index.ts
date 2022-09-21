@@ -22,6 +22,7 @@ import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
 import cors from "cors";
 import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import { whitelistMiddleware } from "./middleware/whitelist.middleware";
 dotenv.config();
 
 const app = express();

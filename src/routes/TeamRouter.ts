@@ -61,7 +61,6 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   if (!user) {
     throw new Error("user not found");
   }
-  console.log(id);
   // if user in team, return team, else return 404
   if (user.team) {
     // Get team rank
