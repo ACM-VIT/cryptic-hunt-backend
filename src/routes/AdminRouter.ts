@@ -56,6 +56,8 @@ router.get("/whitelistupdate", async (req, res) => {
       })),
       skipDuplicates: true,
     });
+
+    return res.status(200).json({ message: "done" });
   } catch (error) {
     return res.sendStatus(500);
   }
