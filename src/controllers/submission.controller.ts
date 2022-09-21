@@ -8,7 +8,7 @@ const submitAnswer = async (
   userId: string,
   answer: string
 ) => {
-  await prisma.$transaction(async (transactionClient) => {
+  return await prisma.$transaction(async (transactionClient) => {
     const question = await transactionClient.question.findUnique({
       where: {
         seq_questionGroupId: {
