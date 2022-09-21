@@ -3,55 +3,24 @@ import { prisma } from "..";
 import { Prisma } from "@prisma/client";
 import { AuthRequest } from "../types/AuthRequest.type";
 const router = express.Router();
-import { verifyUser, readCsv } from "../controllers/verify.controllers";
+import { readCsv, Record } from "../controllers/verify.controllers";
 
-router.post("/", async (req: AuthRequest, res) => {
-  try {
-    const email = req.user!.email;
-    const result = await verifyUser(email);
-    if (result === false) {
-      return res.status(400).json({
-        message: "user not found",
-      });
-    } else {
-      try {
-        const whitelist = await prisma.whitelist.create({
-          data: {
-            email: email,
-          },
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
-            console.log("user already verified");
-          } else {
-            throw e;
-          }
-        }
-      }
+interface EmailType {
+  email: string;
+}
 
-      return res.json({ nominates: result });
-    }
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(400).json({
-        message: error.message,
-      });
-    }
-  }
-});
 router.post("/whitelist", async (req: AuthRequest, res) => {
   try {
     const { emails } = req.body;
-    let emails_arr: any[] = [];
+    let emails_arr: EmailType[] = [];
     emails.forEach((item: string) => {
-      let obj = { email: "" };
+      let obj: EmailType = { email: "" };
       obj["email"] = item;
       emails_arr.push(obj);
     });
-    const records: any = await readCsv();
-    const user = records.find(
-      (record: any) => record.email === req.user!.email
+    const records = await readCsv();
+    const user: any = records.find(
+      (record: Record) => record.email === req.user!.email
     );
     const len = user.paid / 250 - 1;
     if (len < emails_arr.length) {
@@ -62,6 +31,7 @@ router.post("/whitelist", async (req: AuthRequest, res) => {
       try {
         const whitelist = await prisma.whitelist.createMany({
           data: emails_arr,
+          skipDuplicates: true,
         });
         return res.json({ whitelist });
       } catch (e) {
