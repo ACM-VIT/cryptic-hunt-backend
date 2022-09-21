@@ -8,11 +8,11 @@ const saltRounds = 10;
 // Truncate the database
 const truncate = async (tc?: Prisma.TransactionClient) => {
   const client = tc || prisma;
-  await client.question.deleteMany({});
-  await client.questionGroupSubmission.deleteMany({});
-  await client.questionGroup.deleteMany({});
+  await prisma.question.deleteMany({});
+  await prisma.questionGroupSubmission.deleteMany({});
+  await prisma.questionGroup.deleteMany({});
   // set all team's points' 0
-  await client.team.updateMany({
+  await prisma.team.updateMany({
     data: {
       points: 0,
     },
@@ -27,7 +27,7 @@ export type UploadQuestionMethodType = Omit<
 };
 
 const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
-  const { name, description, isSequence, numberOfQuestions, questions } =
+  const { name, description, isSequence, numberOfQuestions, questions, phase } =
     questionGroup;
 
   const client = prisma;
@@ -50,6 +50,7 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
       description,
       isSequence,
       numberOfQuestions,
+      phase,
       questions: {
         createMany: {
           data: hashedQuestions,
@@ -92,10 +93,8 @@ const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
 };
 
 const updateAllQuestions = async () => {
-  return await prisma.$transaction(async (pc) => {
-    await truncate(pc);
-    await uploadQuestions(pc);
-  });
+  await truncate();
+  return await uploadQuestions();
 };
 
 const viewTeams = async () => {

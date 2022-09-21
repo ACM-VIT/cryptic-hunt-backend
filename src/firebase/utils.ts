@@ -8,6 +8,9 @@ export interface QuestionJson {
   description: string;
   answer: string;
   pointsAwarded: number;
+  costOfHint: null | number;
+  hint: null | string;
+  images: string[];
 }
 
 export interface QuestionGroupJson {
@@ -15,11 +18,14 @@ export interface QuestionGroupJson {
   description: string;
   questions: QuestionJson[];
   isSequence: boolean;
+  phase: number;
 }
 
 // Get references to all files in the root directory
 export const getFiles = async () => {
-  const files = await listAll(ref(storage, "/"));
+  const files = await listAll(
+    ref(storage, `${process.env.FOLDER_NAME ?? ``}/`)
+  );
   const items = files.items;
 
   const fileList: (QuestionGroupJson & { numberOfQuestions: number })[] = [];

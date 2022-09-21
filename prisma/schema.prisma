@@ -51,6 +51,7 @@ model Question {
   questionGroupId String
   hint            String?
   costOfHint      Int?
+  images          String[]
   QuestionGroup   QuestionGroup @relation(fields: [questionGroupId], references: [id], onDelete: Cascade)
   Submission      Submission[]
   ViewedHint      ViewedHint[]
@@ -64,7 +65,7 @@ model QuestionGroup {
   numberOfQuestions       Int
   description             String
   isSequence              Boolean
-  minimumPhaseScore       Int                       @default(0)
+  phase                   Int                       @default(0)
   questions               Question[]
   QuestionGroupSubmission QuestionGroupSubmission[]
 }
@@ -120,5 +121,4 @@ model LiveConfig {
 model Whitelist {
   email     String   @id
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

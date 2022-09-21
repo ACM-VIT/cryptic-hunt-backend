@@ -13,6 +13,7 @@ router.get("/update", async (req: AuthRequest, res: Response) => {
     await updateAllQuestions();
     return res.json({ message: "Updated" });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });

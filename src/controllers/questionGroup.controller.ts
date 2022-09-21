@@ -100,7 +100,7 @@ const getFinalQuestionGroupList = async (userId: string) => {
 
   // filter according to phase score
   const filteredQuestionGroups = finalQuestionGroupList.filter(
-    (questionGroup) => questionGroup.minimumPhaseScore <= currentPhaseScore
+    (questionGroup) => questionGroup.phase <= currentPhaseScore
   );
 
   return filteredQuestionGroups;
