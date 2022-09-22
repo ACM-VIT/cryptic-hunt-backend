@@ -276,9 +276,12 @@ const getQuestionGroupById = async (
     question.solved = teamHasSolvedSpecificQuestion;
   }
 
+  const numQuestionsCompleted = subQuestions.filter((q) => q.solved).length;
+
   return {
     ...questionGroup,
     questions: subQuestions,
+    numQuestionsCompleted,
   };
 };
 
