@@ -113,7 +113,9 @@ model LiveConfig {
   id            String   @id @default(cuid())
   currentPhase  Int      @default(0)
   changeTrigger Int      @default(0)
-  phaseText     String   @default("Tik Tok event starts from")
+  phaseText     String   @default("Phase 1")
+  mainText      String   @default("Tik Tok!")
+  time          DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
