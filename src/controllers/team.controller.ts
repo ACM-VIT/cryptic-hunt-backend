@@ -221,5 +221,5 @@ export const getTeamIfTeamOnLeaderboard = async (team_id: string) => {
       teamcode: true,
     },
   });
-  return team;
+  return { ...team, rank };
 };
