@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-// GET all question groups
+// GET all unsolved question groups
 router.get("/", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({
@@ -26,7 +26,47 @@ router.get("/", async (req: AuthRequest, res: Response) => {
       });
     }
 
-    res.json(questionGroupList);
+    // filter out question groups that are unsolved
+    const unsolvedQuestionGroups = questionGroupList.filter(
+      (questionGroup) =>
+        questionGroup.numQuestionsSolvedQuestionGroup <
+        questionGroup.numberOfQuestions
+    );
+
+    return res.status(200).json(unsolvedQuestionGroups);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+});
+
+// GET all solved question groups
+router.get("/archived", async (req: AuthRequest, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({
+      message: "User not found",
+    });
+  }
+  try {
+    const questionGroupList = await getFinalQuestionGroupList(req.user.id);
+
+    if (typeof questionGroupList === "string") {
+      return res.status(400).json({
+        message: questionGroupList,
+      });
+    }
+
+    // filter out question groups that are already solved
+    const solvedQuestionGroups = questionGroupList.filter(
+      (questionGroup) =>
+        questionGroup.numQuestionsSolvedQuestionGroup ===
+        questionGroup.numberOfQuestions
+    );
+
+    return res.status(200).json(solvedQuestionGroups);
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({
