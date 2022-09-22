@@ -6,6 +6,7 @@ import {
   joinTeam,
   leaveTeam,
   getRank,
+  getTeamIfTeamOnLeaderboard,
 } from "../controllers/team.controller";
 
 const router = Router();
@@ -72,6 +73,9 @@ router.get("/", async (req: AuthRequest, res: Response) => {
 
 // leaderboard, top 10 teams by points and updatedAt
 router.get("/leaderboard", async (req: AuthRequest, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
   const teams = await prisma.team.findMany({
     take: 10,
     orderBy: [
@@ -82,7 +86,14 @@ router.get("/leaderboard", async (req: AuthRequest, res: Response) => {
     ],
   });
 
-  return res.json(teams);
+  if (!req.user.teamId) {
+    return res.json({ leaderboard: teams, team: null });
+  }
+
+  return res.json({
+    leaderboard: teams,
+    team: getTeamIfTeamOnLeaderboard(req.user.teamId),
+  });
 });
 
 export default router;

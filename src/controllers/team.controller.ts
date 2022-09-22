@@ -203,3 +203,23 @@ export async function getRank(team_id: string) {
     }
   }
 }
+
+export const getTeamIfTeamOnLeaderboard = async (team_id: string) => {
+  const rank = await getRank(team_id);
+
+  if (rank <= 10) {
+    return null;
+  }
+
+  const team = await prisma.team.findUnique({
+    where: {
+      id: team_id,
+    },
+    select: {
+      name: true,
+      points: true,
+      teamcode: true,
+    },
+  });
+  return team;
+};
