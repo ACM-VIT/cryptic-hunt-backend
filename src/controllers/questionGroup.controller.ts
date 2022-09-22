@@ -220,6 +220,7 @@ const getQuestionGroupById = async (
           pointsAwarded: true,
           seq: true,
           title: true,
+          images: true,
         },
         orderBy: {
           seq: "asc",
