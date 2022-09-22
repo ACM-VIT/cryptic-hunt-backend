@@ -46,25 +46,22 @@ export async function createTeam(teamName: string, user_id: string) {
 
 // joining a team
 export async function joinTeam(team_code: string, user_id: string) {
-  // try {
-  // check if user trying to join is already in a team
-  const alreadyMember = await prisma.user.findUnique({
-    where: {
-      id: user_id,
-    },
-    select: {
-      teamId: true,
-      teamLeading: true,
-    },
-  });
-  // const teamMember = await prisma.user.findMany({
-  //   where: {
-  //     team: {
-  //       teamcode: team_code,
-  //     },
-  //   },
-  // });
   try {
+    // check if user trying to join is already in a team
+    const alreadyMember = await prisma.user.findUnique({
+      where: {
+        id: user_id,
+      },
+      select: {
+        teamId: true,
+        teamLeading: true,
+      },
+    });
+    if (alreadyMember?.teamId !== null) {
+      // not throwing error here
+      throw Error("user is already a part of team");
+    }
+
     const team = await prisma.team.findUnique({
       where: {
         teamcode: team_code,
@@ -75,10 +72,6 @@ export async function joinTeam(team_code: string, user_id: string) {
     });
     if (!team) {
       throw new Error("Team not found");
-    }
-    if (alreadyMember?.teamId !== null) {
-      // not throwing error here
-      throw Error("user is already a part of team");
     }
     if (team.members.length >= MAX_PARTICIPANTS_POSSIBLE) {
       // not throwing error here

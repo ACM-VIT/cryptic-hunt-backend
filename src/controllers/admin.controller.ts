@@ -117,4 +117,36 @@ const viewUsers = async () => {
   });
   return users;
 };
-export { updateAllQuestions, viewTeams, viewUsers, uploadQuestionGroup };
+
+const getSubmissionAnalysis = async () => {
+  // rank question groups by number of submissions
+  const submissions = await prisma.submission.findMany();
+  const questionGroups = await prisma.questionGroup.findMany();
+  const questionGroupSubmissions = questionGroups.map((group) => {
+    const groupSubmissions = submissions.filter(
+      (sub) => sub.questionGroupId === group.id
+    );
+    const percentageCorrect = (
+      (groupSubmissions.filter((sub) => sub.isCorrect).length /
+        groupSubmissions.length) *
+      100
+    ).toFixed(2);
+    return {
+      id: group.id,
+      name: group.name,
+      submissions: groupSubmissions.length,
+      percentageCorrect,
+    };
+  });
+
+  // sort by number of submissions
+  questionGroupSubmissions.sort((a, b) => b.submissions - a.submissions);
+  return questionGroupSubmissions;
+};
+export {
+  updateAllQuestions,
+  viewTeams,
+  viewUsers,
+  uploadQuestionGroup,
+  getSubmissionAnalysis,
+};

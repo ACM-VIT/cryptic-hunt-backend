@@ -91,8 +91,6 @@ model QuestionGroupSubmission {
   team                  Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
   questionGroupId       String
   questionGroup         QuestionGroup @relation(fields: [questionGroupId], references: [id], onDelete: Cascade)
-  // this gets updated on each submission, I'll write/update that code don't worry
-  // just read this and compare it with questionGroup.numQuestions
   numQuestionsCompleted Int           @default(0) // number of questions completed in the question group
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
