@@ -45,7 +45,11 @@ export const authMiddleware = async (
       req.user = newUser;
       return next();
     }
-  } catch (error) {
+  } catch (error: any) {
+    // if FirebaseAuthError, return token expired
+    if (error.code === "auth/id-token-expired") {
+      return res.status(401).json({ error: "Token expired" });
+    }
     console.error(error);
     console.log(process.env.CLIENT_ID);
     // if user is not found
