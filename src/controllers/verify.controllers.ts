@@ -7,7 +7,8 @@ export interface Record {
   paid: number;
 }
 export async function readCsv() {
-  const file = path.join(__dirname, "../../sample.csv");
+  const fileName = `${process.env.WHITELIST_FILE ?? `sample.csv`}`;
+  const file = path.join(__dirname, `../../${fileName}`);
   const data = fs.readFileSync(file, "utf8");
   const records: Record[] = await new Promise((resolve, reject) => {
     parse(data, { columns: true }, (err, records) => {
