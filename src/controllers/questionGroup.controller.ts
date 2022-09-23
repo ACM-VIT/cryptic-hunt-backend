@@ -281,7 +281,7 @@ const getQuestionGroupById = async (
   return {
     ...questionGroup,
     questions: subQuestions,
-    numQuestionsCompleted,
+    numQuestionsSolvedQuestionGroup: numQuestionsCompleted,
   };
 };
 
