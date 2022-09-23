@@ -70,7 +70,7 @@ export async function joinTeam(team_code: string, user_id: string) {
         members: true,
       },
     });
-    if (!team) {
+    if (team === null) {
       throw new Error("Team not found");
     }
     if (team.members.length >= MAX_PARTICIPANTS_POSSIBLE) {
@@ -100,7 +100,7 @@ export async function joinTeam(team_code: string, user_id: string) {
 }
 
 // leaving a team
-export async function leaveTeam(user_id: string) {
+export async function leaveTeam(user: User) {
   try {
     const currentUser = await prisma.user.findUnique({
       where: {

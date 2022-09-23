@@ -1,11 +1,11 @@
+import { User } from "@prisma/client";
 import { prisma } from "..";
 import bcrypt from "bcrypt";
 
 const submitAnswer = async (
   questionGroupId: string,
   seq: number,
-  teamId: string,
-  userId: string,
+  user: User,
   answer: string
 ) => {
   return await prisma.$transaction(async (transactionClient) => {
@@ -25,7 +25,7 @@ const submitAnswer = async (
     // Check for existing submissions
     const previousSubmissions = await transactionClient.submission.findMany({
       where: {
-        teamId: teamId,
+        teamId: user.teamId!,
         questionGroupId: questionGroupId,
         questionSeq: seq,
       },
@@ -44,8 +44,8 @@ const submitAnswer = async (
     const isCorrect = await bcrypt.compare(answer, question.answer);
     const submission = await transactionClient.submission.create({
       data: {
-        teamId: teamId,
-        userId: userId,
+        teamId: user.teamId!,
+        userId: user.id,
         questionGroupId: questionGroupId,
         questionSeq: seq,
         answer: answer,
@@ -58,7 +58,7 @@ const submitAnswer = async (
         await transactionClient.questionGroupSubmission.update({
           where: {
             teamId_questionGroupId: {
-              teamId: teamId,
+              teamId: user.teamId!,
               questionGroupId: questionGroupId,
             },
           },
@@ -73,7 +73,7 @@ const submitAnswer = async (
 
         await transactionClient.team.update({
           where: {
-            id: teamId,
+            id: user.teamId!,
           },
           data: {
             points: { increment: question.pointsAwarded },
@@ -90,7 +90,7 @@ const submitAnswer = async (
   });
 };
 
-const getAllSubmissionsForUser = async (
+const getAllSubmissionsForUserById = async (
   userId: string,
   questionGroupId: string,
   seq: number
@@ -136,17 +136,7 @@ const getAllSubmissionsForUsersTeamByQuestionGroup = async (
   return submissions;
 };
 
-export {
-  submitAnswer,
-  getAllSubmissionsForUser,
-  getAllSubmissionsForUsersTeamByQuestionGroup,
-};
-
-export const buyHint = async (
-  userId: string,
-  questionGroupId: string,
-  seq: number
-) => {
+const buyHint = async (user: User, questionGroupId: string, seq: number) => {
   return await prisma.$transaction(async (transactionClient) => {
     const question = await transactionClient.question.findUnique({
       where: {
@@ -159,16 +149,6 @@ export const buyHint = async (
 
     if (!question) {
       throw new Error("Question not found");
-    }
-
-    const user = await transactionClient.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
     }
 
     if (!user.teamId) {
@@ -215,4 +195,11 @@ export const buyHint = async (
     }
     return { ...hintSubmission, hint: question.hint };
   });
+};
+
+export {
+  submitAnswer,
+  getAllSubmissionsForUserById,
+  getAllSubmissionsForUsersTeamByQuestionGroup,
+  buyHint,
 };

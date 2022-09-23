@@ -34,9 +34,9 @@ router.post("/jointeam", async (req: AuthRequest, res: Response) => {
   }
 });
 router.delete("/", async (req: AuthRequest, res: Response) => {
-  const userid = req.user!.id;
+  const user = req.user!;
   try {
-    const leave = await leaveTeam(userid);
+    const leave = await leaveTeam(user);
     return res.json(leave);
   } catch (e) {
     if (e instanceof Error) {

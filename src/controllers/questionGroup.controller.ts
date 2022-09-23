@@ -1,49 +1,21 @@
-import { QuestionGroup } from "@prisma/client";
+import { QuestionGroup, User } from "@prisma/client";
 import { prisma } from "..";
-import { get, set } from "../services/redis";
-import * as util from "util";
+import CacheService from "../services/cache.service";
+
+const ttl = 60 * 60 * 1; // cache for 1 Hour
+const cache = new CacheService(ttl); // Create a new cache service instance
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
-  const cachedQuestionGroups = await redisMethod.get("questionGroups");
-  if (cachedQuestionGroups) {
-    return JSON.parse(cachedQuestionGroups);
-  }
-  const questionGroups = await prisma.questionGroup.findMany();
-  await set("questionGroups", 60, JSON.stringify(questionGroups));
-  return questionGroups;
+  return cache.get("questionGroups", async () => {
+    return await prisma.questionGroup.findMany();
+  });
 };
 
 // Check the number of questions solved in a given question group by a given user's team
-const numQuestionsSolved = async (
-  questionGroup: QuestionGroup,
-  userId: string
-) => {
-  // Fetch user details using the user id
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-
-  // If the user is not found, return false
-  if (!user) {
-    return "User not found";
-  }
-
+const numQuestionsSolved = async (questionGroup: QuestionGroup, user: User) => {
   if (user.teamId === null) {
     return "User is not part of a team";
-  }
-
-  // Get user team details
-  const team = await prisma.team.findUnique({
-    where: {
-      id: user.teamId,
-    },
-  });
-
-  if (!team) {
-    return "Team not found";
   }
 
   // Check team questionGroup submissions
@@ -51,7 +23,7 @@ const numQuestionsSolved = async (
     await prisma.questionGroupSubmission.findUnique({
       where: {
         teamId_questionGroupId: {
-          teamId: team.id,
+          teamId: user.teamId,
           questionGroupId: questionGroup.id,
         },
       },
@@ -67,10 +39,12 @@ const numQuestionsSolved = async (
 
 // get current phase score
 const getCurrentPhaseScore = async () => {
-  const currentPhase = await prisma.liveConfig.findFirst({
-    select: {
-      currentPhase: true,
-    },
+  const currentPhase = await cache.get("currentPhaseScore", async () => {
+    return await prisma.liveConfig.findFirst({
+      select: {
+        currentPhase: true,
+      },
+    });
   });
 
   if (!currentPhase) {
@@ -81,14 +55,14 @@ const getCurrentPhaseScore = async () => {
 };
 
 // Return a list of questionGroups that have an isSolved property with each object
-const getFinalQuestionGroupList = async (userId: string) => {
+const getFinalQuestionGroupList = async (user: User) => {
   const questionGroups = await getAllQuestionGroups();
   const finalQuestionGroupList = [];
 
   for (const questionGroup of questionGroups) {
     const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
       questionGroup,
-      userId
+      user
     );
 
     if (typeof numQuestionsSolvedQuestionGroup === "string") {
@@ -116,23 +90,9 @@ const getFinalQuestionGroupList = async (userId: string) => {
 // Check if user has viewed a question's hint
 const getUserHasViewedHint = async (
   questionGroupId: string,
-  userId: string,
+  user: User,
   seq: number
 ) => {
-  // get user's teamId
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      teamId: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   if (!user.teamId) {
     throw new Error("User is not part of a team");
   }
@@ -164,23 +124,9 @@ type Question = {
 // getTeamHasSolvedSpecificQuestion
 const getTeamHasSolvedSpecificQuestion = async (
   questionGroupId: string,
-  userId: string,
+  user: User,
   seq: number
 ) => {
-  // get user's teamId
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      teamId: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   if (!user.teamId) {
     throw new Error("User is not part of a team");
   }
@@ -209,10 +155,7 @@ const getTeamHasSolvedSpecificQuestion = async (
 };
 
 // Get question group by id
-const getQuestionGroupById = async (
-  questionGroupId: string,
-  userId: string
-) => {
+const getQuestionGroupById = async (questionGroupId: string, user: User) => {
   const questionGroup = await prisma.questionGroup.findUnique({
     where: {
       id: questionGroupId,
@@ -248,7 +191,7 @@ const getQuestionGroupById = async (
     // else return only the questions that have been solved and one unsolved
     const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
       questionGroup,
-      userId
+      user
     );
 
     if (typeof numQuestionsSolvedQuestionGroup === "string") {
@@ -263,7 +206,7 @@ const getQuestionGroupById = async (
   for (const question of subQuestions) {
     const userHasViewedHint = await getUserHasViewedHint(
       questionGroup.id,
-      userId,
+      user,
       question.seq
     );
     if (!userHasViewedHint) {
@@ -276,7 +219,7 @@ const getQuestionGroupById = async (
     const teamHasSolvedSpecificQuestion =
       await getTeamHasSolvedSpecificQuestion(
         questionGroup.id,
-        userId,
+        user,
         question.seq
       );
 

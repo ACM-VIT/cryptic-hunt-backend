@@ -18,7 +18,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     });
   }
   try {
-    const questionGroupList = await getFinalQuestionGroupList(req.user.id);
+    const questionGroupList = await getFinalQuestionGroupList(req.user);
 
     if (typeof questionGroupList === "string") {
       return res.status(400).json({
@@ -51,7 +51,7 @@ router.get("/archived", async (req: AuthRequest, res: Response) => {
     });
   }
   try {
-    const questionGroupList = await getFinalQuestionGroupList(req.user.id);
+    const questionGroupList = await getFinalQuestionGroupList(req.user);
 
     if (typeof questionGroupList === "string") {
       return res.status(400).json({
@@ -105,7 +105,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
   try {
     const specificQuestionGroup = await getQuestionGroupById(
       req.params.id,
-      req.user.id
+      req.user
     );
     console.log(specificQuestionGroup);
     return res.json(specificQuestionGroup);
