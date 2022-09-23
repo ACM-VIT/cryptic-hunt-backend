@@ -4,13 +4,12 @@ import express from "express";
 // Middlewares
 import { adminMiddleware } from "./middleware/admin.middleware";
 import { authMiddleware } from "./middleware/auth.middleware";
+import { teamMiddleware } from "./middleware/team.middleware";
 
 // Routers
 import teamsRouter from "./routes/TeamRouter";
 import adminRouter from "./routes/AdminRouter";
 import verifyRouter from "./routes/VerifyRouter";
-
-// Routers
 import usersRouter from "./routes/UserRouter";
 import submissionsRouter from "./routes/SubmissionRouter";
 import questionGroupsRouter from "./routes/QuestionGroupRouter";
@@ -91,11 +90,14 @@ app.use(whitelistMiddleware);
 //   const users = await prisma.user.findMany();
 //   res.json(users);
 // });
-app.use("/teams", teamsRouter);
+app.use("/verify", verifyRouter);
 app.use("/users", usersRouter);
+app.use("/teams", teamsRouter);
+
+// Check whether user is in a team
+app.use(teamMiddleware);
 app.use("/submissions", submissionsRouter);
 app.use("/questiongroups", questionGroupsRouter);
-app.use("/verify", verifyRouter);
 
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");

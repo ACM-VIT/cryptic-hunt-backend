@@ -7,15 +7,11 @@ const router = Router();
 
 router.post("/profile", async (req: AuthRequest, res: Response) => {
   const { gender, rollNo, phoneNo } = req.body;
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
+
   try {
     const user_signup = await prisma.user.update({
       where: {
-        id: req.user.id,
+        id: req.user!.id,
       },
       data: { gender, rollNo, phoneNo },
     });
@@ -31,13 +27,10 @@ router.post("/profile", async (req: AuthRequest, res: Response) => {
 });
 
 router.get("/profile", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({ error: "User not found" });
-  }
   try {
     const userProfile = await prisma.user.findUnique({
       where: {
-        id: req.user.id,
+        id: req.user!.id,
       },
     });
     return res.json(userProfile);

@@ -107,20 +107,10 @@ const getAllSubmissionsForUserById = async (
 };
 
 const getAllSubmissionsForUsersTeamByQuestionGroup = async (
-  userId: string,
+  user: User,
   questionGroupId: string,
   seq: number
 ) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   if (!user.teamId) {
     throw new Error("User is not in a team");
   }
@@ -161,15 +151,11 @@ const buyHint = async (user: User, questionGroupId: string, seq: number) => {
       },
     });
 
-    if (!team) {
-      throw new Error("Team not found");
-    }
-
     if (!question.costOfHint || !question.hint) {
       throw new Error("Question does not have a hint");
     }
 
-    if (team.points < question.costOfHint) {
+    if (team!.points < question.costOfHint) {
       throw new Error("Not enough points to buy hint");
     }
 

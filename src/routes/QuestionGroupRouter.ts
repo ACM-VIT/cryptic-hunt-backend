@@ -12,13 +12,8 @@ const router = Router();
 
 // GET all unsolved question groups
 router.get("/", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
   try {
-    const questionGroupList = await getFinalQuestionGroupList(req.user);
+    const questionGroupList = await getFinalQuestionGroupList(req.user!);
 
     if (typeof questionGroupList === "string") {
       return res.status(400).json({
@@ -45,13 +40,8 @@ router.get("/", async (req: AuthRequest, res: Response) => {
 
 // GET all solved question groups
 router.get("/archived", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
   try {
-    const questionGroupList = await getFinalQuestionGroupList(req.user);
+    const questionGroupList = await getFinalQuestionGroupList(req.user!);
 
     if (typeof questionGroupList === "string") {
       return res.status(400).json({
@@ -78,12 +68,6 @@ router.get("/archived", async (req: AuthRequest, res: Response) => {
 
 // GET current phase
 router.get("/current-phase", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
-
   try {
     const currentPhase = await getCurrentPhase();
 
@@ -97,15 +81,10 @@ router.get("/current-phase", async (req: AuthRequest, res: Response) => {
 
 // GET question group by id
 router.get("/:id", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
   try {
     const specificQuestionGroup = await getQuestionGroupById(
       req.params.id,
-      req.user
+      req.user!
     );
     console.log(specificQuestionGroup);
     return res.json(specificQuestionGroup);
@@ -125,12 +104,6 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
 
 // CREATE question group
 router.post("/", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
-
   const { name, description, questions, isSequence } = req.body;
 
   if (!name || !description || !questions || !isSequence) {
@@ -206,12 +179,6 @@ router.post("/", async (req: AuthRequest, res: Response) => {
 
 // DELETE question group
 router.delete("/:id", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
-
   try {
     const questionGroup = await deleteQuestionGroup(req.params.id);
 

@@ -13,12 +13,6 @@ const router = Router();
 router.post("/submit", async (req: AuthRequest, res: Response) => {
   const { questionGroupId, seq, answer } = req.body;
 
-  if (req.user!.teamId === null) {
-    return res.status(401).json({
-      message: "User is not part of a team",
-    });
-  }
-
   if (typeof questionGroupId !== "string" || typeof seq !== "number") {
     return res.status(400).json({
       message: "Question details found incorrect",
@@ -61,19 +55,6 @@ router.post("/submit", async (req: AuthRequest, res: Response) => {
 // buy hint
 router.post("/buyhint", async (req: AuthRequest, res: Response) => {
   const { questionGroupId, seq } = req.body;
-  const { user } = req;
-
-  if (!user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
-
-  if (user.teamId === null) {
-    return res.status(401).json({
-      message: "User is not part of a team",
-    });
-  }
 
   if (typeof questionGroupId !== "string" || typeof seq !== "number") {
     return res.status(400).json({
@@ -82,7 +63,7 @@ router.post("/buyhint", async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const response = await buyHint(user, questionGroupId, seq);
+    const response = await buyHint(req.user!, questionGroupId, seq);
     return res.json(response);
   } catch (error) {
     if (error instanceof Error) {
@@ -97,12 +78,6 @@ router.post("/buyhint", async (req: AuthRequest, res: Response) => {
 
 // GET all submissions for a user
 router.get("/", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
-
   const { qgid, qseq } = req.query;
 
   if (!qgid || !qseq) {
@@ -114,7 +89,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   // typeof qgid === "string" && typeof qseq === "string"
   if (typeof qgid === "string" && typeof qseq === "string") {
     const submissions = await getAllSubmissionsForUserById(
-      req.user.id,
+      req.user!.id,
       qgid,
       parseInt(qseq)
     );
@@ -128,12 +103,6 @@ router.get("/", async (req: AuthRequest, res: Response) => {
 
 // GET all submissions for a user's team
 router.get("/team", async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({
-      message: "User not found",
-    });
-  }
-
   const { qgid, qseq } = req.query;
 
   if (!qgid || !qseq) {
@@ -142,13 +111,11 @@ router.get("/team", async (req: AuthRequest, res: Response) => {
     });
   }
 
-  const { id } = req.user;
-
   // typeof qgid === "string" && typeof qseq === "string"
   if (typeof qgid === "string" && typeof qseq === "string") {
     try {
       const submissions = await getAllSubmissionsForUsersTeamByQuestionGroup(
-        id,
+        req.user!,
         qgid,
         parseInt(qseq)
       );
