@@ -1,5 +1,4 @@
-import { Response, Router } from "express";
-import { AuthRequest } from "../types/AuthRequest.type";
+import { Request, Response, Router } from "express";
 import {
   updateAllQuestions,
   viewTeams,
@@ -10,7 +9,7 @@ import { readCsv, Record } from "../controllers/verify.controllers";
 import { prisma } from "..";
 const router = Router();
 
-router.get("/update", async (req: AuthRequest, res: Response) => {
+router.get("/update", async (req: Request, res: Response) => {
   try {
     await updateAllQuestions();
     return res.json({ message: "Updated" });
@@ -19,7 +18,7 @@ router.get("/update", async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-router.get("/users", async (req: AuthRequest, res: Response) => {
+router.get("/users", async (req: Request, res: Response) => {
   try {
     return res.json(await viewUsers());
   } catch (e) {
@@ -29,7 +28,7 @@ router.get("/users", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/users/count", async (req: AuthRequest, res: Response) => {
+router.get("/users/count", async (req: Request, res: Response) => {
   try {
     const users = await prisma.user.findMany();
     return res.json({ count: users.length });
@@ -40,7 +39,7 @@ router.get("/users/count", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/teams", async (req: AuthRequest, res: Response) => {
+router.get("/teams", async (req: Request, res: Response) => {
   try {
     return res.json(await viewTeams());
   } catch (e) {
@@ -50,7 +49,7 @@ router.get("/teams", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/teams/count", async (req: AuthRequest, res: Response) => {
+router.get("/teams/count", async (req: Request, res: Response) => {
   try {
     const teams = await prisma.team.findMany();
     return res.json({ count: teams.length });
@@ -61,7 +60,7 @@ router.get("/teams/count", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/submissions/count", async (req: AuthRequest, res: Response) => {
+router.get("/submissions/count", async (req: Request, res: Response) => {
   try {
     const submissions = await prisma.submission.findMany();
     return res.json({ count: submissions.length });
@@ -72,7 +71,7 @@ router.get("/submissions/count", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/submissions/accuracy", async (req: AuthRequest, res: Response) => {
+router.get("/submissions/accuracy", async (req: Request, res: Response) => {
   try {
     const submissions = await prisma.submission.findMany();
     const correct = submissions.filter((sub) => sub.isCorrect).length;
@@ -86,7 +85,7 @@ router.get("/submissions/accuracy", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/submissions/analysis", async (req: AuthRequest, res: Response) => {
+router.get("/submissions/analysis", async (req: Request, res: Response) => {
   try {
     return res.json(await getSubmissionAnalysis());
   } catch (e) {

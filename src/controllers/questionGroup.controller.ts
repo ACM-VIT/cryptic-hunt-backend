@@ -1,9 +1,6 @@
 import { QuestionGroup, User } from "@prisma/client";
 import { prisma } from "..";
-import CacheService from "../services/cache.service";
-
-const ttl = 60 * 60 * 1; // cache for 1 Hour
-const cache = new CacheService(ttl); // Create a new cache service instance
+import cache from "../services/cache.service";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
@@ -19,15 +16,19 @@ const numQuestionsSolved = async (questionGroup: QuestionGroup, user: User) => {
   }
 
   // Check team questionGroup submissions
-  const questionGroupSubmission =
-    await prisma.questionGroupSubmission.findUnique({
-      where: {
-        teamId_questionGroupId: {
-          teamId: user.teamId,
-          questionGroupId: questionGroup.id,
+  const questionGroupSubmission = cache.get(
+    `questionGroupSubmission_${questionGroup.id}_${user.teamId}`,
+    async () => {
+      await prisma.questionGroupSubmission.findUnique({
+        where: {
+          teamId_questionGroupId: {
+            teamId: user.teamId!,
+            questionGroupId: questionGroup.id,
+          },
         },
-      },
-    });
+      });
+    }
+  );
 
   if (!questionGroupSubmission) {
     return "Question group submission not found";
@@ -226,9 +227,12 @@ const getQuestionGroupById = async (questionGroupId: string, user: User) => {
     question.solved = teamHasSolvedSpecificQuestion;
   }
 
+  const numQuestionsCompleted = subQuestions.filter((q) => q.solved).length;
+
   return {
     ...questionGroup,
     questions: subQuestions,
+    numQuestionsSolvedQuestionGroup: numQuestionsCompleted,
   };
 };
 

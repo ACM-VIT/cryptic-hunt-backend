@@ -1,6 +1,5 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { prisma } from "..";
-import { AuthRequest } from "../types/AuthRequest.type";
 
 async function checkwhitelist(email: string) {
   const whitelist = await prisma.whitelist.findUnique({
@@ -12,7 +11,7 @@ async function checkwhitelist(email: string) {
 }
 
 export async function whitelistMiddleware(
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) {
@@ -21,7 +20,7 @@ export async function whitelistMiddleware(
     if (!isToken) {
       throw new Error("Token not found");
     }
-    const user = await checkwhitelist(req.user!.email);
+    const user = await checkwhitelist(req.user.email);
     if (!user) {
       return res.status(403).json({ message: "Not Whitelisted" });
     }

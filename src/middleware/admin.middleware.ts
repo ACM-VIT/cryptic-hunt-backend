@@ -1,5 +1,4 @@
-import { Response, NextFunction } from "express";
-import { AuthRequest } from "../types/AuthRequest.type";
+import {Request, Response, NextFunction } from "express";
 import { auth } from "../firebase/firebase";
 
 const admins = process.env.ADMINS?.split(",");
@@ -11,7 +10,7 @@ async function verify(token: string) {
 }
 
 export const adminMiddleware = async (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {

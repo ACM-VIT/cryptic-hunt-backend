@@ -1,5 +1,4 @@
-import { Response, Router } from "express";
-import { AuthRequest } from "../types/AuthRequest.type";
+import { Request, Response, Router } from "express";
 import {
   buyHint,
   getAllSubmissionsForUserById,
@@ -10,7 +9,7 @@ import {
 const router = Router();
 
 // make submission
-router.post("/submit", async (req: AuthRequest, res: Response) => {
+router.post("/submit", async (req: Request, res: Response) => {
   const { questionGroupId, seq, answer } = req.body;
 
   if (typeof questionGroupId !== "string" || typeof seq !== "number") {
@@ -25,19 +24,12 @@ router.post("/submit", async (req: AuthRequest, res: Response) => {
     });
   }
   try {
-    const response = await submitAnswer(
-      questionGroupId,
-      seq,
-      req.user!,
-      answer
-    );
-
+    const response = await submitAnswer(questionGroupId, seq, req.user, answer);
     if (typeof response === "string") {
       return res.status(400).json({
         message: response,
       });
     }
-
     return res.json(response);
   } catch (error) {
     if (error instanceof Error) {
@@ -53,7 +45,7 @@ router.post("/submit", async (req: AuthRequest, res: Response) => {
 });
 
 // buy hint
-router.post("/buyhint", async (req: AuthRequest, res: Response) => {
+router.post("/buyhint", async (req: Request, res: Response) => {
   const { questionGroupId, seq } = req.body;
 
   if (typeof questionGroupId !== "string" || typeof seq !== "number") {
@@ -63,7 +55,7 @@ router.post("/buyhint", async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const response = await buyHint(req.user!, questionGroupId, seq);
+    const response = await buyHint(req.user, questionGroupId, seq);
     return res.json(response);
   } catch (error) {
     if (error instanceof Error) {
@@ -77,7 +69,7 @@ router.post("/buyhint", async (req: AuthRequest, res: Response) => {
 });
 
 // GET all submissions for a user
-router.get("/", async (req: AuthRequest, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
   const { qgid, qseq } = req.query;
 
   if (!qgid || !qseq) {
@@ -89,7 +81,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
   // typeof qgid === "string" && typeof qseq === "string"
   if (typeof qgid === "string" && typeof qseq === "string") {
     const submissions = await getAllSubmissionsForUserById(
-      req.user!.id,
+      req.user.id,
       qgid,
       parseInt(qseq)
     );
@@ -102,7 +94,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
 });
 
 // GET all submissions for a user's team
-router.get("/team", async (req: AuthRequest, res: Response) => {
+router.get("/team", async (req: Request, res: Response) => {
   const { qgid, qseq } = req.query;
 
   if (!qgid || !qseq) {
@@ -115,7 +107,7 @@ router.get("/team", async (req: AuthRequest, res: Response) => {
   if (typeof qgid === "string" && typeof qseq === "string") {
     try {
       const submissions = await getAllSubmissionsForUsersTeamByQuestionGroup(
-        req.user!,
+        req.user,
         qgid,
         parseInt(qseq)
       );

@@ -44,4 +44,7 @@ class Cache {
   }
 }
 
-export default Cache;
+const ttl = 60 * 60 * 1; // cache for 1 Hour
+const cache = new Cache(ttl); // Create a new cache service instance
+
+export default cache;

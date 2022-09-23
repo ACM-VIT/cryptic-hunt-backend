@@ -1,12 +1,10 @@
 import { User } from "@prisma/client";
-// global.Express.Request import user request
-import { AuthRequest } from "../types/AuthRequest.type";
-import { Response, NextFunction } from "express";
+import { Response, NextFunction, Request } from "express";
 import { prisma } from "..";
 import { auth } from "../firebase/firebase";
 
 export const authMiddleware = async (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
