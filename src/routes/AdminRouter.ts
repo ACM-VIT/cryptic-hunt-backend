@@ -108,7 +108,7 @@ router.get("/whitelistupdate", async (req, res) => {
 
     return res.status(200).json({ message: "done" });
   } catch (error) {
-    return res.sendStatus(500);
+    return res.sendStatus(500).json({ error: "Error in reading CSV" });
   }
 });
 export default router;

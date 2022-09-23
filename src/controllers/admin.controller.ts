@@ -93,7 +93,7 @@ const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
 };
 
 const updateAllQuestions = async () => {
-  await truncate();
+  // await truncate();
   return await uploadQuestions();
 };
 

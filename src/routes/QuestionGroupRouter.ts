@@ -107,6 +107,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
       req.params.id,
       req.user.id
     );
+    console.log(specificQuestionGroup);
     return res.json(specificQuestionGroup);
   } catch (error) {
     if (error instanceof Error) {

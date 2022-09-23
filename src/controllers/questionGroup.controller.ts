@@ -1,9 +1,16 @@
 import { QuestionGroup } from "@prisma/client";
 import { prisma } from "..";
+import { get, set } from "../services/redis";
+import * as util from "util";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
+  const cachedQuestionGroups = await redisMethod.get("questionGroups");
+  if (cachedQuestionGroups) {
+    return JSON.parse(cachedQuestionGroups);
+  }
   const questionGroups = await prisma.questionGroup.findMany();
+  await set("questionGroups", 60, JSON.stringify(questionGroups));
   return questionGroups;
 };
 
