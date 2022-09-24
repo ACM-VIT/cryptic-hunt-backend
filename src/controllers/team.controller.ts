@@ -215,11 +215,6 @@ export const getTeamIfTeamOnLeaderboard = async (team_id: string) => {
     where: {
       id: team_id,
     },
-    select: {
-      name: true,
-      points: true,
-      teamcode: true,
-    },
   });
   return { ...team, rank };
 };
