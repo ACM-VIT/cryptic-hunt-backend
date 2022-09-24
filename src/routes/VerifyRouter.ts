@@ -7,36 +7,56 @@ import { readCsv, Record } from "../controllers/verify.controllers";
 
 interface EmailType {
   email: string;
+  hasWhitelisted: boolean;
 }
 
 router.post("/whitelist", async (req: AuthRequest, res: Response) => {
   // try {
   const { emails } = req.body;
-  let emails_arr: EmailType[] = [];
-
-  emails.forEach((item: string) => {
-    let obj: EmailType = { email: "" };
-    obj["email"] = item;
-    emails_arr.push(obj);
-  });
 
   const records = await readCsv();
-  console.log(records);
   const user = records.find(
     (record: Record) => record.email === req.user!.email
   );
   const len = user!.paid / 250 - 1;
-  if (len < emails_arr.length) {
+  let emails_arr: EmailType[] = [];
+
+  emails.forEach((item: string) => {
+    let obj: EmailType = { email: "", hasWhitelisted: true };
+    obj["email"] = item;
+    emails_arr.push(obj);
+  });
+  if (len != emails_arr.length) {
     return res.status(400).json({
-      message: "you can't nominate more than your paid",
+      message: `you can't nominate, you should nominate ${len} users`,
     });
   } else {
-    // try {
-    const whitelist = await prisma.whitelist.createMany({
-      data: emails_arr,
-      skipDuplicates: true,
+    const check = await prisma.whitelist.findMany({
+      where: {
+        email: req.user!.email,
+        hasWhitelisted: true,
+      },
     });
-    return res.json({ whitelist });
+    if (check != null) {
+      return res.status(409).json({
+        message: `user has already nominated!`,
+      });
+    } else {
+      // try {
+      const whitelist = await prisma.whitelist.createMany({
+        data: emails_arr,
+        skipDuplicates: true,
+      });
+      const updateuser = await prisma.whitelist.update({
+        where: {
+          email: req.user!.email,
+        },
+        data: {
+          hasWhitelisted: true,
+        },
+      });
+      return res.json({ whitelist });
+    }
     // } catch (e) {
     //   if (e instanceof Prisma.PrismaClientKnownRequestError) {
     //     if (e.code === "P2002") {
