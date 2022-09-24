@@ -27,6 +27,7 @@ router.post("/jointeam", async (req: Request, res: Response) => {
 
   try {
     const updatedUserWithJoinedTeam = await joinTeam(teamcode, req.user);
+    cache.delStartWith(`team_${updatedUserWithJoinedTeam.teamId}`);
     return res.json(updatedUserWithJoinedTeam);
   } catch (e) {
     if (e instanceof Error) {
@@ -50,7 +51,7 @@ router.get("/", async (req: Request, res: Response) => {
   if (req.user.teamId) {
     // Get team rank
     const teamRank = await getRank(req.user.teamId);
-    const team = cache.get(`team_${req.user.teamId}`, async () => {
+    const team = await cache.get(`team_${req.user.teamId}`, async () => {
       return await prisma.team.findUnique({
         where: {
           id: req.user.teamId!,

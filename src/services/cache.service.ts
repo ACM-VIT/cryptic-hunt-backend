@@ -10,14 +10,14 @@ class Cache {
     });
   }
 
-  get(key: any, storeFunction: () => any) {
+  async get(key: any, storeFunction: () => any) {
     const value = this.cache.get(key);
     if (value) {
-      console.log("In Cache");
-      return Promise.resolve(value);
+      // console.log("In Cache");
+      return value;
     }
 
-    const result = storeFunction();
+    const result = await storeFunction();
     this.cache.set(key, result);
     return result;
   }

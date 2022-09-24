@@ -4,8 +4,9 @@ import cache from "../services/cache.service";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
-  return cache.get("questionGroups", async () => {
-    return await prisma.questionGroup.findMany();
+  return await cache.get("questionGroups", async () => {
+    const questionGroups = await prisma.questionGroup.findMany();
+    return questionGroups;
   });
 };
 
@@ -16,10 +17,10 @@ const numQuestionsSolved = async (questionGroup: QuestionGroup, user: User) => {
   }
 
   // Check team questionGroup submissions
-  const questionGroupSubmission = cache.get(
+  const questionGroupSubmission = await cache.get(
     `questionGroupSubmission_${questionGroup.id}_${user.teamId}`,
     async () => {
-      await prisma.questionGroupSubmission.findUnique({
+      return await prisma.questionGroupSubmission.findUnique({
         where: {
           teamId_questionGroupId: {
             teamId: user.teamId!,
@@ -99,15 +100,20 @@ const getUserHasViewedHint = async (
   }
 
   // look for record in ViewedHint table
-  const viewedHint = await prisma.viewedHint.findUnique({
-    where: {
-      teamId_questionGroupId_questionSeq: {
-        teamId: user.teamId,
-        questionGroupId,
-        questionSeq: seq,
-      },
-    },
-  });
+  const viewedHint = cache.get(
+    `viewedHint_${questionGroupId}_${user.teamId}_${seq}`,
+    async () => {
+      return await prisma.viewedHint.findUnique({
+        where: {
+          teamId_questionGroupId_questionSeq: {
+            teamId: user.teamId!,
+            questionGroupId,
+            questionSeq: seq,
+          },
+        },
+      });
+    }
+  );
 
   return !!viewedHint;
 };
@@ -157,35 +163,41 @@ const getTeamHasSolvedSpecificQuestion = async (
 
 // Get question group by id
 const getQuestionGroupById = async (questionGroupId: string, user: User) => {
-  const questionGroup = await prisma.questionGroup.findUnique({
-    where: {
-      id: questionGroupId,
-    },
-    include: {
-      questions: {
-        select: {
-          answer: false,
-          hint: true,
-          costOfHint: true,
-          description: true,
-          pointsAwarded: true,
-          seq: true,
-          title: true,
-          images: true,
+  const questionGroup = await cache.get(
+    `questionGroup_${questionGroupId}`,
+    async () => {
+      const questionGroup = await prisma.questionGroup.findUnique({
+        where: {
+          id: questionGroupId,
         },
-        orderBy: {
-          seq: "asc",
+        include: {
+          questions: {
+            select: {
+              answer: false,
+              hint: true,
+              costOfHint: true,
+              description: true,
+              pointsAwarded: true,
+              seq: true,
+              title: true,
+              images: true,
+            },
+            orderBy: {
+              seq: "asc",
+            },
+          },
         },
-      },
-    },
-  });
+      });
+      return questionGroup;
+    }
+  );
 
   if (!questionGroup) {
     throw new Error("Question group not found");
   }
 
   let subQuestions: Question[] =
-    questionGroup.questions.map((q) => ({ ...q, solved: false })) || [];
+    questionGroup.questions.map((q: any) => ({ ...q, solved: false })) || [];
 
   // if questionGroup.isSequence = false, return all questions
   if (questionGroup.isSequence) {

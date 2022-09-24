@@ -10,7 +10,7 @@ const submitAnswer = async (
   answer: string
 ) => {
   return await prisma.$transaction(async (transactionClient) => {
-    const question = cache.get(
+    const question = await cache.get(
       `questionGroup_${questionGroupId}_${seq}`,
       async () => {
         return await transactionClient.question.findUnique({
@@ -136,7 +136,7 @@ const getAllSubmissionsForUsersTeamByQuestionGroup = async (
 
 const buyHint = async (user: User, questionGroupId: string, seq: number) => {
   return await prisma.$transaction(async (transactionClient) => {
-    const question = cache.get(
+    const question = await cache.get(
       `questionGroup_${questionGroupId}_${seq}`,
       async () => {
         return await transactionClient.question.findUnique({
@@ -158,7 +158,7 @@ const buyHint = async (user: User, questionGroupId: string, seq: number) => {
       throw new Error("User is not in a team");
     }
 
-    const team = cache.get(`team_${user.teamId}`, async () => {
+    const team = await cache.get(`team_${user.teamId}`, async () => {
       return await transactionClient.team.findUnique({
         where: {
           id: user.teamId!,

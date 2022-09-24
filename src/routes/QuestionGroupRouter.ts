@@ -6,6 +6,7 @@ import {
   getFinalQuestionGroupList,
   getQuestionGroupById,
 } from "../controllers/questionGroup.controller";
+import cache from "../services/cache.service";
 
 const router = Router();
 
@@ -85,7 +86,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       req.params.id,
       req.user
     );
-    console.log(specificQuestionGroup);
     return res.json(specificQuestionGroup);
   } catch (error) {
     if (error instanceof Error) {
@@ -172,6 +172,7 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
   }
+  cache.del("questionGroups");
 
   return res.sendStatus(201);
 });
@@ -180,6 +181,7 @@ router.post("/", async (req: Request, res: Response) => {
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const questionGroup = await deleteQuestionGroup(req.params.id);
+    cache.del("questionGroups");
 
     return res.status(200).json(questionGroup);
   } catch (error) {

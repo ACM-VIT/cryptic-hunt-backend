@@ -7,11 +7,13 @@ import {
 } from "../controllers/admin.controller";
 import { readCsv, Record } from "../controllers/verify.controllers";
 import { prisma } from "..";
+import cache from "../services/cache.service";
 const router = Router();
 
 router.get("/update", async (req: Request, res: Response) => {
   try {
     await updateAllQuestions();
+    cache.del("questionGroups");
     return res.json({ message: "Updated" });
   } catch (e) {
     console.error(e);

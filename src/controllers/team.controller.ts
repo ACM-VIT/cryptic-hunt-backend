@@ -53,7 +53,7 @@ export async function joinTeam(team_code: string, user: User) {
       throw Error("user is already a part of team");
     }
 
-    const team = cache.get(`team_${user.teamId}`, async () => {
+    const team = await cache.get(`team_${user.teamId}`, async () => {
       return await prisma.team.findUnique({
         where: {
           id: user.teamId!,
@@ -100,7 +100,7 @@ export async function leaveTeam(user: User) {
     } else {
       // find team_code from team id
       const teamId = user.teamId;
-      const team = cache.get(`team_${user.teamId}`, async () => {
+      const team = await cache.get(`team_${user.teamId}`, async () => {
         return await prisma.team.findUnique({
           where: {
             id: user.teamId!,
@@ -155,10 +155,10 @@ export async function leaveTeam(user: User) {
 
 export async function getRank(team_id: string) {
   try {
-    const team = cache.get(`team_${team_id}`, async () => {
+    const team = await cache.get(`team_${team_id}`, async () => {
       return await prisma.team.findUnique({
         where: {
-          id: team_id!,
+          id: team_id,
         },
         include: {
           members: true,
@@ -169,7 +169,7 @@ export async function getRank(team_id: string) {
     const teams = await prisma.team.findMany({
       where: {
         points: {
-          gte: team?.points,
+          gte: team.points,
         },
       },
       orderBy: [

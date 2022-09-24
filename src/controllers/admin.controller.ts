@@ -82,7 +82,7 @@ const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
   const questionGroups = await getFiles();
 
   // const promises = questionGroups.map(async (questionGroup) => {
-  //   return await uploadQuestionGroup(questionGroup, client);
+  //   return await uploadQuestionGroup(questionGroup);
   // });
 
   // await Promise.all(promises);
@@ -93,7 +93,7 @@ const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
 };
 
 const updateAllQuestions = async () => {
-  // await truncate();
+  await truncate();
   return await uploadQuestions();
 };
 

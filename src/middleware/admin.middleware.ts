@@ -1,4 +1,4 @@
-import {Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { auth } from "../firebase/firebase";
 
 const admins = process.env.ADMINS?.split(",");

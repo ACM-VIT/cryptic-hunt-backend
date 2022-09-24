@@ -5,8 +5,10 @@ export async function teamMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  if (req.user.teamId === null) {
-    throw new Error("User is not in a team");
+  if (!req.user.teamId) {
+    return res.status(401).json({
+      message: "You are not part of a team",
+    });
   } else {
     next();
   }
