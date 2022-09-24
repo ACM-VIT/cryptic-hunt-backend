@@ -22,7 +22,8 @@
     "firebase-admin": "^11.0.1",
     "google-auth-library": "^8.5.1",
     "helmet": "^6.0.0",
-    "short-unique-id": "^4.4.4"
+    "short-unique-id": "^4.4.4",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^9.1.6",

@@ -2,6 +2,7 @@ import { User } from "@prisma/client";
 import { prisma } from "..";
 import bcrypt from "bcrypt";
 import cache from "../services/cache.service";
+import logger from "../services/logger.service";
 
 const submitAnswer = async (
   questionGroupId: string,
@@ -87,13 +88,13 @@ const submitAnswer = async (
             points: { increment: question.pointsAwarded },
           },
         });
-
+        logger.info(`Answer Submitted: ${user.teamId} ${questionGroupId}`);
         return submission;
       } catch (error) {
+        logger.error(`Error in submitAnswer: ${error}`);
         throw new Error("Couldn't submit answer");
       }
     }
-
     return submission;
   });
 };

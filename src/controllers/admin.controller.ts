@@ -2,6 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "..";
 import { getFiles } from "../firebase/utils";
 import bcrypt from "bcrypt";
+import logger from "../services/logger.service";
 
 const saltRounds = 10;
 
@@ -30,8 +31,6 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
   const { name, description, isSequence, numberOfQuestions, questions, phase } =
     questionGroup;
 
-  const client = prisma;
-
   // Hash each answer and store it in the database
   const hashedQuestions = await Promise.all(
     questions.map(async (question) => {
@@ -44,7 +43,7 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
     })
   );
 
-  const qg = await client.questionGroup.create({
+  const qg = await prisma.questionGroup.create({
     data: {
       name,
       description,
@@ -61,7 +60,7 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
 
   // for each team, create a question group submission for the created question group
   // with numQuestionsCompleted = 0
-  const teams = await client.team.findMany();
+  const teams = await prisma.team.findMany();
   // use createMany
   const qGroupSubmissions: Prisma.QuestionGroupSubmissionCreateManyInput[] = [];
   for (const team of teams) {
@@ -72,7 +71,7 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
     });
   }
 
-  await client.questionGroupSubmission.createMany({
+  await prisma.questionGroupSubmission.createMany({
     data: qGroupSubmissions,
   });
 };
@@ -80,20 +79,17 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
 const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
   const client = pc || prisma;
   const questionGroups = await getFiles();
-
-  // const promises = questionGroups.map(async (questionGroup) => {
-  //   return await uploadQuestionGroup(questionGroup);
-  // });
-
-  // await Promise.all(promises);
-
+  logger.info("Uploading questions");
   for (const questionGroup of questionGroups) {
     await uploadQuestionGroup(questionGroup);
   }
+  logger.info("Questions uploaded");
 };
 
 const updateAllQuestions = async () => {
+  logger.info("Truncating all questions");
   await truncate();
+  logger.info("fetching all questions");
   return await uploadQuestions();
 };
 

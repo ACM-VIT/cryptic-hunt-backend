@@ -6,3 +6,4 @@ sample.csv
 package-lock.json
 *-firebase-adminsdk-*
 *~
+*.log
