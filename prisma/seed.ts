@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { readCsv } from "../src/controllers/verify.controllers";
+import logger from "../src/services/logger.service";
 
 const prisma = new PrismaClient();
 
@@ -38,11 +39,11 @@ async function main() {
 
 main()
   .then((data) => {
-    console.log("DB seeding done.");
-    console.log(data);
+    logger.info("DB seeding done.");
+    logger.info(data);
     process.exit(0);
   })
   .catch((e) => {
-    console.error(e);
+    logger.error(e);
     process.exit(1);
   });

@@ -88,6 +88,7 @@ const submitAnswer = async (
             points: { increment: question.pointsAwarded },
           },
         });
+        cache.del(`team_${user.teamId!}`);
         logger.info(`Answer Submitted: ${user.teamId} ${questionGroupId}`);
         return submission;
       } catch (error) {

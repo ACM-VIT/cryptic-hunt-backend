@@ -2,6 +2,7 @@ import { User } from "@prisma/client";
 import { Response, NextFunction, Request } from "express";
 import { prisma } from "..";
 import { auth } from "../firebase/firebase";
+import logger from "../services/logger.service";
 
 export const authMiddleware = async (
   req: Request,
