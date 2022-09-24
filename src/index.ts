@@ -9,11 +9,10 @@ import { authMiddleware } from "./middleware/auth.middleware";
 import teamsRouter from "./routes/TeamRouter";
 import adminRouter from "./routes/AdminRouter";
 import verifyRouter from "./routes/VerifyRouter";
-
-// Routers
 import usersRouter from "./routes/UserRouter";
 import submissionsRouter from "./routes/SubmissionRouter";
 import questionGroupsRouter from "./routes/QuestionGroupRouter";
+import metaRouter from "./routes/MetaRouter";
 
 // Security
 import rateLimit from "express-rate-limit";
@@ -72,6 +71,7 @@ app.use(
 );
 
 app.use("/admin", adminMiddleware, adminRouter);
+app.use("/meta", metaRouter);
 export const prisma = new PrismaClient();
 
 // health route
