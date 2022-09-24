@@ -124,3 +124,11 @@ model Whitelist {
   email     String   @id
   createdAt DateTime @default(now())
 }
+
+model TimeLineEvents {
+  id        Int      @id @default(autoincrement())
+  startTime DateTime
+  title     String
+  subTitle  String?
+  numHours  Int
+}
