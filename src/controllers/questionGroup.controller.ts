@@ -1,6 +1,7 @@
 import { QuestionGroup, User } from "@prisma/client";
 import { prisma } from "..";
 import cache from "../services/cache.service";
+import logger from "../services/logger.service";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {

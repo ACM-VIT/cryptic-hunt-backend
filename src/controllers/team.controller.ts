@@ -2,6 +2,7 @@ import { Prisma, User } from "@prisma/client";
 import { prisma } from "..";
 import ShortUniqueId from "short-unique-id";
 import cache from "../services/cache.service";
+import logger from "../services/logger.service";
 const MAX_PARTICIPANTS_POSSIBLE = 4;
 // unique code
 async function getRandomCode() {
@@ -95,37 +96,45 @@ export async function joinTeam(team_code: string, user: User) {
 // leaving a team
 export async function leaveTeam(user: User) {
   try {
-    if (user.teamId === null) {
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        teamId: true,
+        teamLeading: true,
+        team: true,
+      },
+    });
+    if (currentUser?.teamId === null) {
       throw new Error("User is not a part of a team"); // not throwing error here
     } else {
       // find team_code from team id
-      const teamId = user.teamId;
-      const team = await cache.get(`team_${user.teamId}`, async () => {
-        return await prisma.team.findUnique({
+      const team_code = currentUser?.team?.teamcode;
+      if (currentUser?.teamLeading !== null) {
+        const userTeam = await prisma.user.findMany({
           where: {
-            id: user.teamId!,
+            team: {
+              teamcode: team_code,
+            },
           },
-          include: {
-            members: true,
+          orderBy: {
+            updatedAt: "asc",
           },
         });
-      });
-
-      // Check if user is team leader
-      if (team?.teamLeaderId === user.id) {
-        if (team.members.length > 1) {
-          await prisma.team.update({
+        if (userTeam.length > 1) {
+          const updatingTeam = await prisma.team.update({
             where: {
-              teamcode: teamId,
+              teamcode: team_code,
             },
             data: {
-              teamLeaderId: team.members[1].id,
+              teamLeaderId: userTeam[1].id,
             },
           });
         } else {
           await prisma.team.delete({
             where: {
-              teamcode: teamId,
+              teamcode: team_code,
             },
           });
         }
@@ -140,6 +149,8 @@ export async function leaveTeam(user: User) {
           },
         },
       });
+      cache.del(`team_${user.teamId}`);
+      logger.info(`Deleted Cache team_${user.teamId}`);
       return leave;
     }
   } catch (e) {

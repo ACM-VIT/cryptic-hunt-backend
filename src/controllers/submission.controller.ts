@@ -62,8 +62,9 @@ const submitAnswer = async (
 
     if (isCorrect) {
       try {
-        cache.delStartWith(
-          `questionGroupSubmission_${questionGroupId}_${user.teamId}`
+        cache.del(`questionGroupSubmission_${questionGroupId}_${user.teamId}`);
+        logger.info(
+          `Deleted cache questionGroupSubmission_${questionGroupId}_${user.teamId}`
         );
         await transactionClient.questionGroupSubmission.update({
           where: {
@@ -89,6 +90,7 @@ const submitAnswer = async (
           },
         });
         cache.del(`team_${user.teamId!}`);
+        logger.info(`Deleted cache team_${user.teamId!}`);
         logger.info(`Answer Submitted: ${user.teamId} ${questionGroupId}`);
         return submission;
       } catch (error) {
@@ -199,6 +201,11 @@ const buyHint = async (user: User, questionGroupId: string, seq: number) => {
     if (updateTeam.points < 0) {
       throw new Error("Not enough points to buy hint");
     }
+
+    // Delete team cache
+    cache.del(`team__${user.teamId}`);
+    logger.info(`Deleted team_${user.teamId} cache`);
+
     return { ...hintSubmission, hint: question.hint };
   });
 };

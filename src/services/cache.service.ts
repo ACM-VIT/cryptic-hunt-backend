@@ -10,7 +10,7 @@ class Cache {
     });
   }
 
-  async get(key: any, storeFunction: () => any) {
+  async get(key: string, storeFunction: () => Promise<any>) {
     const value = this.cache.get(key);
     if (value) {
       // console.log("In Cache");
@@ -22,8 +22,8 @@ class Cache {
     return result;
   }
 
-  del(keys: any) {
-    this.cache.del(keys);
+  del(keys: string) {
+    return this.cache.del(keys);
   }
 
   delStartWith(startStr = "") {
@@ -41,6 +41,10 @@ class Cache {
 
   flush() {
     this.cache.flushAll();
+  }
+
+  keys() {
+    return this.cache.keys();
   }
 }
 

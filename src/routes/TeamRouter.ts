@@ -8,6 +8,7 @@ import {
   getTeamIfTeamOnLeaderboard,
 } from "../controllers/team.controller";
 import cache from "../services/cache.service";
+import logger from "../services/logger.service";
 
 const router = Router();
 
@@ -27,7 +28,8 @@ router.post("/jointeam", async (req: Request, res: Response) => {
 
   try {
     const updatedUserWithJoinedTeam = await joinTeam(teamcode, req.user);
-    cache.delStartWith(`team_${updatedUserWithJoinedTeam.teamId}`);
+    cache.del(`team_${updatedUserWithJoinedTeam.teamId}`);
+    logger.info(`Deleted team_${updatedUserWithJoinedTeam.teamId} cache`);
     return res.json(updatedUserWithJoinedTeam);
   } catch (e) {
     if (e instanceof Error) {
@@ -36,9 +38,11 @@ router.post("/jointeam", async (req: Request, res: Response) => {
   }
 });
 router.delete("/", async (req: Request, res: Response) => {
+  logger.info(`User ${req.user.id} is leaving team ${req.user.teamId}`);
   try {
     const leave = await leaveTeam(req.user);
-    cache.delStartWith("team");
+    cache.del(`team_${req.user.teamId}`);
+    logger.info(`Deleted team_${req.user.teamId} cache`);
     return res.json(leave);
   } catch (e) {
     if (e instanceof Error) {

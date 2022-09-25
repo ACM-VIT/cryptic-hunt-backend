@@ -8,12 +8,14 @@ import {
 import { readCsv, Record } from "../controllers/verify.controllers";
 import { prisma } from "..";
 import cache from "../services/cache.service";
+import logger from "../services/logger.service";
 const router = Router();
 
 router.get("/update", async (req: Request, res: Response) => {
   try {
     await updateAllQuestions();
-    cache.del("questionGroups");
+    logger.info("Deleted QuestionGroups Cache ", cache.del("questionGroups"));
+
     return res.json({ message: "Updated" });
   } catch (e) {
     console.error(e);
@@ -111,5 +113,11 @@ router.get("/whitelistupdate", async (req, res) => {
   } catch (error) {
     return res.sendStatus(500).json({ error: "Error in reading CSV" });
   }
+});
+
+router.get("/flush", async (req, res) => {
+  cache.flush();
+  logger.info("Cached Flushed Successfully");
+  return res.status(200).json({ message: "done" });
 });
 export default router;
