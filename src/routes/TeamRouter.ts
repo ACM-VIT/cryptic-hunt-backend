@@ -19,7 +19,7 @@ router.post("/createteam", async (req: AuthRequest, res: Response) => {
     const team = await createTeam(teamname, userid);
     return res.json(team);
   } catch (error) {
-    return res.status(409).json({ error: error });
+    return res.status(409).json({ message: error });
   }
 });
 router.post("/jointeam", async (req: AuthRequest, res: Response) => {
@@ -30,7 +30,7 @@ router.post("/jointeam", async (req: AuthRequest, res: Response) => {
     return res.json(updatedUserWithJoinedTeam);
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(400).json({ error: e.message });
+      return res.status(400).json({ message: e.message });
     }
   }
 });
@@ -41,7 +41,7 @@ router.delete("/", async (req: AuthRequest, res: Response) => {
     return res.json(leave);
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(400).json({ error: e.message });
+      return res.status(400).json({ message: e.message });
     }
   }
 });
@@ -68,13 +68,13 @@ router.get("/", async (req: AuthRequest, res: Response) => {
     const teamRank = await getRank(user.team.id);
     return res.json({ ...user.team, rank: teamRank });
   }
-  return res.status(404).json({ error: "user not in team" });
+  return res.status(404).json({ message: "user not in team" });
 });
 
 // leaderboard, top 10 teams by points and updatedAt
 router.get("/leaderboard", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
   const teams = await prisma.team.findMany({
     take: 10,

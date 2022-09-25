@@ -39,7 +39,7 @@ export const adminMiddleware = async (
   } catch (error) {
     console.log(error);
     if (error instanceof Error) {
-      return res.status(401).json({ error: error.message });
+      return res.status(401).json({ message: error.message });
     }
     return res.status(401).json({ message: "Not an Admin, Fuck Off" });
   }

@@ -24,7 +24,7 @@ router.get("/users", async (req: AuthRequest, res: Response) => {
     return res.json(await viewUsers());
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });
@@ -35,7 +35,7 @@ router.get("/users/count", async (req: AuthRequest, res: Response) => {
     return res.json({ count: users.length });
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });
@@ -45,7 +45,7 @@ router.get("/teams", async (req: AuthRequest, res: Response) => {
     return res.json(await viewTeams());
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });
@@ -56,7 +56,7 @@ router.get("/teams/count", async (req: AuthRequest, res: Response) => {
     return res.json({ count: teams.length });
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });
@@ -67,7 +67,7 @@ router.get("/submissions/count", async (req: AuthRequest, res: Response) => {
     return res.json({ count: submissions.length });
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });
@@ -81,7 +81,7 @@ router.get("/submissions/accuracy", async (req: AuthRequest, res: Response) => {
     return res.json({ accuracy: percentage.toFixed(2) });
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });
@@ -91,7 +91,7 @@ router.get("/submissions/analysis", async (req: AuthRequest, res: Response) => {
     return res.json(await getSubmissionAnalysis());
   } catch (e) {
     if (e instanceof Error) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ message: e.message });
     }
   }
 });

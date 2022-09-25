@@ -25,14 +25,14 @@ router.post("/profile", async (req: AuthRequest, res: Response) => {
       console.log(e);
       return res
         .status(501)
-        .json({ error: "unable to modify profile details" });
+        .json({ message: "unable to modify profile details" });
     }
   }
 });
 
 router.get("/profile", async (req: AuthRequest, res: Response) => {
   if (!req.user) {
-    return res.status(401).json({ error: "User not found" });
+    return res.status(401).json({ message: "User not found" });
   }
   try {
     const userProfile = await prisma.user.findUnique({
@@ -46,7 +46,7 @@ router.get("/profile", async (req: AuthRequest, res: Response) => {
       console.log(e);
       return res
         .status(501)
-        .json({ error: "an error occured while getting user profile" });
+        .json({ message: "an error occured while getting user profile" });
     }
   }
 });
