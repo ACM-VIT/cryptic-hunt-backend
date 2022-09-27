@@ -1,54 +1,72 @@
 import NodeCache from "node-cache";
 
-class Cache {
-  cache: any;
-  constructor(ttlSeconds: number) {
-    this.cache = new NodeCache({
-      stdTTL: ttlSeconds,
-      checkperiod: ttlSeconds,
-      useClones: false,
-    });
-  }
+// class Cache {
+//   cache: any;
+//   constructor(ttlSeconds: number) {
+// this.cache = new NodeCache({
+//   stdTTL: ttlSeconds,
+//   checkperiod: ttlSeconds,
+//   useClones: false,
+// });
+//   }
 
-  async get(key: string, storeFunction: () => Promise<any>) {
-    const value = this.cache.get(key);
-    if (value) {
-      // console.log("In Cache");
-      return value;
-    }
+//   async get(key: string, storeFunction: () => Promise<any>) {
+//     const value = this.cache.get(key);
+//     if (value) {
+//       // console.log("In Cache");
+//       return value;
+//     }
 
-    const result = await storeFunction();
-    this.cache.set(key, result);
-    return result;
-  }
+//     const result = await storeFunction();
+//     this.cache.set(key, result);
+//     return result;
+//   }
 
-  del(keys: string) {
-    return this.cache.del(keys);
-  }
+//   del(keys: string) {
+//     return this.cache.del(keys);
+//   }
 
-  delStartWith(startStr = "") {
-    if (!startStr) {
-      return;
-    }
+//   delStartWith(startStr = "") {
+//     if (!startStr) {
+//       return;
+//     }
 
-    const keys = this.cache.keys();
-    for (const key of keys) {
-      if (key.indexOf(startStr) === 0) {
-        this.del(key);
-      }
-    }
-  }
+//     const keys = this.cache.keys();
+//     for (const key of keys) {
+//       if (key.indexOf(startStr) === 0) {
+//         this.del(key);
+//       }
+//     }
+//   }
 
-  flush() {
-    this.cache.flushAll();
-  }
+//   flush() {
+//     this.cache.flushAll();
+//   }
 
-  keys() {
-    return this.cache.keys();
-  }
-}
+//   keys() {
+//     return this.cache.keys();
+//   }
+// }
 
 const ttl = 60 * 60 * 1; // cache for 1 Hour
-const cache = new Cache(ttl); // Create a new cache service instance
+export const cache = new NodeCache({
+  stdTTL: ttl,
+  checkperiod: ttl,
+  useClones: false,
+}); // Create a new cache service instance
+
+export const delStartsWith = (startStr = "") => {
+  if (!startStr) {
+    // cache.flushAll();
+    return;
+  }
+
+  const keys = cache.keys();
+  for (const key of keys) {
+    if (key.indexOf(startStr) === 0) {
+      cache.del(key);
+    }
+  }
+};
 
 export default cache;

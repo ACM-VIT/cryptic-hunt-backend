@@ -9,6 +9,7 @@ import {
 } from "../controllers/team.controller";
 import cache from "../services/cache.service";
 import logger from "../services/logger.service";
+import { Team, User } from "@prisma/client";
 
 const router = Router();
 
@@ -55,17 +56,38 @@ router.get("/", async (req: Request, res: Response) => {
   if (req.user.teamId) {
     // Get team rank
     const teamRank = await getRank(req.user.teamId);
-    const team = await cache.get(`team_${req.user.teamId}`, async () => {
-      return await prisma.team.findUnique({
-        where: {
-          id: req.user.teamId!,
-        },
-        include: {
-          members: true,
-        },
-      });
+
+    // Get team
+
+    // check cache
+    const team = cache.get<
+      Team & {
+        members: User[];
+      }
+    >(`team_${req.user.teamId}`);
+
+    if (team) {
+      return res.json({ ...team, rank: teamRank });
+    }
+
+    // if not, retrieve from db
+    const teamFromDb = await prisma.team.findUnique({
+      where: {
+        id: req.user.teamId,
+      },
+      include: {
+        members: true,
+      },
     });
-    return res.json({ ...team, rank: teamRank });
+
+    if (!teamFromDb) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    // set cache
+    cache.set(`team_${req.user.teamId}`, teamFromDb);
+
+    return res.json({ ...teamFromDb, rank: teamRank });
   }
   return res.status(404).json({ error: "User not in team" });
 });

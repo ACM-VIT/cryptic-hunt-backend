@@ -1,8 +1,9 @@
-import { Prisma, User } from "@prisma/client";
+import { Prisma, Team, User } from "@prisma/client";
 import { prisma } from "..";
 import ShortUniqueId from "short-unique-id";
 import cache from "../services/cache.service";
 import logger from "../services/logger.service";
+import { getAllQuestionGroups } from "./questionGroup.controller";
 const MAX_PARTICIPANTS_POSSIBLE = 4;
 // unique code
 async function getRandomCode() {
@@ -14,6 +15,7 @@ async function getRandomCode() {
 // creating a team
 export async function createTeam(teamName: string, user_id: string) {
   try {
+    // create team
     const team_code = await getRandomCode();
     const newTeam = await prisma.team.create({
       data: {
@@ -22,8 +24,19 @@ export async function createTeam(teamName: string, user_id: string) {
         teamLeader: { connect: { id: user_id } },
         members: { connect: { id: user_id } },
       },
+      include: {
+        members: true,
+      },
     });
-    const questionGroups = await prisma.questionGroup.findMany();
+
+    // set team cache
+    cache.set<
+      Team & {
+        members: User[];
+      }
+    >(`team_${newTeam.id}`, newTeam);
+
+    const questionGroups = await getAllQuestionGroups();
     const questionGroupIds = questionGroups.map((qg) => qg.id);
     const teamQuestionGroups = questionGroupIds.map((qgId) => {
       return {
