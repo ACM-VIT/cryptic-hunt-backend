@@ -39,13 +39,17 @@ router.post("/submit", async (req: AuthRequest, res: Response) => {
       message: "Answer details found incorrect",
     });
   }
+
+  // strip answer
+  const strippedAnswer = answer.trim().toLowerCase();
+
   try {
     const response = await submitAnswer(
       questionGroupId,
       seq,
       teamId,
       id,
-      answer
+      strippedAnswer
     );
 
     if (typeof response === "string") {

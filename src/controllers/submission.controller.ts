@@ -48,7 +48,6 @@ const submitAnswer = async (
         userId: userId,
         questionGroupId: questionGroupId,
         questionSeq: seq,
-        answer: answer,
         isCorrect: isCorrect,
       },
     });

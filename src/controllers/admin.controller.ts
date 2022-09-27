@@ -36,7 +36,8 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
   const hashedQuestions = await Promise.all(
     questions.map(async (question) => {
       const { answer, ...rest } = question;
-      const hashedAnswer = await bcrypt.hash(answer, saltRounds);
+      const strippedAnswer = answer.trim().toLowerCase();
+      const hashedAnswer = await bcrypt.hash(strippedAnswer, saltRounds);
       return {
         ...rest,
         answer: hashedAnswer,
@@ -81,15 +82,11 @@ const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
   const client = pc || prisma;
   const questionGroups = await getFiles();
 
-  // const promises = questionGroups.map(async (questionGroup) => {
-  //   return await uploadQuestionGroup(questionGroup, client);
-  // });
+  const promises = questionGroups.map(async (questionGroup) => {
+    return await uploadQuestionGroup(questionGroup);
+  });
 
-  // await Promise.all(promises);
-
-  for (const questionGroup of questionGroups) {
-    await uploadQuestionGroup(questionGroup);
-  }
+  await Promise.all(promises);
 };
 
 const updateAllQuestions = async () => {
