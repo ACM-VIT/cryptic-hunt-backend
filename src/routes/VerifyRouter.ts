@@ -1,7 +1,5 @@
-import { Response, Router } from "express";
+import { Request, Response, Router } from "express";
 import { prisma } from "..";
-import { Prisma } from "@prisma/client";
-import { AuthRequest } from "../types/AuthRequest.type";
 const router = Router();
 import { readCsv, Record } from "../controllers/verify.controllers";
 
@@ -9,7 +7,7 @@ interface EmailType {
   email: string;
 }
 
-router.post("/whitelist", async (req: AuthRequest, res: Response) => {
+router.post("/whitelist", async (req: Request, res: Response) => {
   // try {
   const { emails } = req.body;
   let emails_arr: EmailType[] = [];
@@ -23,7 +21,7 @@ router.post("/whitelist", async (req: AuthRequest, res: Response) => {
   const records = await readCsv();
   console.log(records);
   const user = records.find(
-    (record: Record) => record.email === req.user!.email
+    (record: Record) => record.email === req.user.email
   );
   const len = user!.paid / 250 - 1;
   if (len < emails_arr.length) {
@@ -56,7 +54,7 @@ router.post("/whitelist", async (req: AuthRequest, res: Response) => {
   // }
 });
 
-router.get("/whitelist", async (req: AuthRequest, res: Response) => {
+router.get("/whitelist", async (req: Request, res: Response) => {
   const whitelist = await prisma.whitelist.findMany();
   const listemail: string[] = [];
   whitelist.forEach((element) => {

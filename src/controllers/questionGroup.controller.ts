@@ -1,5 +1,7 @@
-import { QuestionGroup } from "@prisma/client";
+import { QuestionGroup, User } from "@prisma/client";
 import { prisma } from "..";
+
+import logger from "../services/logger.service";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
@@ -8,35 +10,9 @@ const getAllQuestionGroups = async () => {
 };
 
 // Check the number of questions solved in a given question group by a given user's team
-const numQuestionsSolved = async (
-  questionGroup: QuestionGroup,
-  userId: string
-) => {
-  // Fetch user details using the user id
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-
-  // If the user is not found, return false
-  if (!user) {
-    return "User not found";
-  }
-
+const numQuestionsSolved = async (questionGroup: QuestionGroup, user: User) => {
   if (user.teamId === null) {
     return "User is not part of a team";
-  }
-
-  // Get user team details
-  const team = await prisma.team.findUnique({
-    where: {
-      id: user.teamId,
-    },
-  });
-
-  if (!team) {
-    return "Team not found";
   }
 
   // Check team questionGroup submissions
@@ -44,7 +20,7 @@ const numQuestionsSolved = async (
     await prisma.questionGroupSubmission.findUnique({
       where: {
         teamId_questionGroupId: {
-          teamId: team.id,
+          teamId: user.teamId!,
           questionGroupId: questionGroup.id,
         },
       },
@@ -74,14 +50,14 @@ const getCurrentPhaseScore = async () => {
 };
 
 // Return a list of questionGroups that have an isSolved property with each object
-const getFinalQuestionGroupList = async (userId: string) => {
+const getFinalQuestionGroupList = async (user: User) => {
   const questionGroups = await getAllQuestionGroups();
   const finalQuestionGroupList = [];
 
   for (const questionGroup of questionGroups) {
     const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
       questionGroup,
-      userId
+      user
     );
 
     if (typeof numQuestionsSolvedQuestionGroup === "string") {
@@ -109,23 +85,9 @@ const getFinalQuestionGroupList = async (userId: string) => {
 // Check if user has viewed a question's hint
 const getUserHasViewedHint = async (
   questionGroupId: string,
-  userId: string,
+  user: User,
   seq: number
 ) => {
-  // get user's teamId
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      teamId: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   if (!user.teamId) {
     throw new Error("User is not part of a team");
   }
@@ -134,7 +96,7 @@ const getUserHasViewedHint = async (
   const viewedHint = await prisma.viewedHint.findUnique({
     where: {
       teamId_questionGroupId_questionSeq: {
-        teamId: user.teamId,
+        teamId: user.teamId!,
         questionGroupId,
         questionSeq: seq,
       },
@@ -157,23 +119,9 @@ type Question = {
 // getTeamHasSolvedSpecificQuestion
 const getTeamHasSolvedSpecificQuestion = async (
   questionGroupId: string,
-  userId: string,
+  user: User,
   seq: number
 ) => {
-  // get user's teamId
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      teamId: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   if (!user.teamId) {
     throw new Error("User is not part of a team");
   }
@@ -202,10 +150,7 @@ const getTeamHasSolvedSpecificQuestion = async (
 };
 
 // Get question group by id
-const getQuestionGroupById = async (
-  questionGroupId: string,
-  userId: string
-) => {
+const getQuestionGroupById = async (questionGroupId: string, user: User) => {
   const questionGroup = await prisma.questionGroup.findUnique({
     where: {
       id: questionGroupId,
@@ -234,14 +179,14 @@ const getQuestionGroupById = async (
   }
 
   let subQuestions: Question[] =
-    questionGroup.questions.map((q) => ({ ...q, solved: false })) || [];
+    questionGroup.questions.map((q: any) => ({ ...q, solved: false })) || [];
 
   // if questionGroup.isSequence = false, return all questions
   if (questionGroup.isSequence) {
     // else return only the questions that have been solved and one unsolved
     const numQuestionsSolvedQuestionGroup = await numQuestionsSolved(
       questionGroup,
-      userId
+      user
     );
 
     if (typeof numQuestionsSolvedQuestionGroup === "string") {
@@ -256,7 +201,7 @@ const getQuestionGroupById = async (
   for (const question of subQuestions) {
     const userHasViewedHint = await getUserHasViewedHint(
       questionGroup.id,
-      userId,
+      user,
       question.seq
     );
     if (!userHasViewedHint) {
@@ -269,7 +214,7 @@ const getQuestionGroupById = async (
     const teamHasSolvedSpecificQuestion =
       await getTeamHasSolvedSpecificQuestion(
         questionGroup.id,
-        userId,
+        user,
         question.seq
       );
 

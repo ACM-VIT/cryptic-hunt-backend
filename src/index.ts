@@ -4,6 +4,7 @@ import express from "express";
 // Middlewares
 import { adminMiddleware } from "./middleware/admin.middleware";
 import { authMiddleware } from "./middleware/auth.middleware";
+import { teamMiddleware } from "./middleware/team.middleware";
 
 // Routers
 import teamsRouter from "./routes/TeamRouter";
@@ -25,6 +26,8 @@ import { whitelistMiddleware } from "./middleware/whitelist.middleware";
 dotenv.config();
 
 const app = express();
+
+// const redisClient = redis.createClient();
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -84,15 +87,14 @@ app.get("/", (req, res) => {
 app.use(authMiddleware);
 app.use(whitelistMiddleware);
 
-// app.get("/users", async (req, res) => {
-//   const users = await prisma.user.findMany();
-//   res.json(users);
-// });
-app.use("/teams", teamsRouter);
+app.use("/verify", verifyRouter);
 app.use("/users", usersRouter);
+app.use("/teams", teamsRouter);
+
+// Check whether user is in a team
+app.use(teamMiddleware);
 app.use("/submissions", submissionsRouter);
 app.use("/questiongroups", questionGroupsRouter);
-app.use("/verify", verifyRouter);
 
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");

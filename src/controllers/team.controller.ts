@@ -1,6 +1,8 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { prisma } from "..";
 import ShortUniqueId from "short-unique-id";
+
+import logger from "../services/logger.service";
 const MAX_PARTICIPANTS_POSSIBLE = 4;
 // unique code
 async function getRandomCode() {
@@ -45,32 +47,22 @@ export async function createTeam(teamName: string, user_id: string) {
 }
 
 // joining a team
-export async function joinTeam(team_code: string, user_id: string) {
+export async function joinTeam(team_code: string, user: User) {
   try {
-    // check if user trying to join is already in a team
-    const alreadyMember = await prisma.user.findUnique({
-      where: {
-        id: user_id,
-      },
-      select: {
-        teamId: true,
-        teamLeading: true,
-      },
-    });
-    if (alreadyMember?.teamId !== null) {
+    if (user.teamId !== null) {
       // not throwing error here
       throw Error("user is already a part of team");
     }
 
     const team = await prisma.team.findUnique({
       where: {
-        teamcode: team_code,
+        id: user.teamId!,
       },
       include: {
         members: true,
       },
     });
-    if (!team) {
+    if (team === null) {
       throw new Error("Team not found");
     }
     if (team.members.length >= MAX_PARTICIPANTS_POSSIBLE) {
@@ -79,7 +71,7 @@ export async function joinTeam(team_code: string, user_id: string) {
     } else {
       const joinTeam = await prisma.user.update({
         where: {
-          id: user_id,
+          id: user.id,
         },
         data: {
           team: {
@@ -100,11 +92,11 @@ export async function joinTeam(team_code: string, user_id: string) {
 }
 
 // leaving a team
-export async function leaveTeam(user_id: string) {
+export async function leaveTeam(user: User) {
   try {
     const currentUser = await prisma.user.findUnique({
       where: {
-        id: user_id,
+        id: user.id,
       },
       select: {
         teamId: true,
@@ -147,7 +139,7 @@ export async function leaveTeam(user_id: string) {
       }
       const leave = await prisma.user.update({
         where: {
-          id: user_id,
+          id: user.id,
         },
         data: {
           team: {
@@ -155,6 +147,7 @@ export async function leaveTeam(user_id: string) {
           },
         },
       });
+      logger.info(`Deleted Cache team_${user.teamId}`);
       return leave;
     }
   } catch (e) {
@@ -174,15 +167,15 @@ export async function getRank(team_id: string) {
       where: {
         id: team_id,
       },
-      select: {
-        points: true,
+      include: {
+        members: true,
       },
     });
     // if points are same than order by time
     const teams = await prisma.team.findMany({
       where: {
         points: {
-          gte: team?.points,
+          gte: team!.points,
         },
       },
       orderBy: [
@@ -213,7 +206,7 @@ export const getTeamIfTeamOnLeaderboard = async (team_id: string) => {
 
   const team = await prisma.team.findUnique({
     where: {
-      id: team_id,
+      id: team_id!,
     },
   });
   return { ...team, rank };

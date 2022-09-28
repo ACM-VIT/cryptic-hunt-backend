@@ -1,11 +1,13 @@
+import { User } from "@prisma/client";
 import { prisma } from "..";
 import bcrypt from "bcrypt";
+
+import logger from "../services/logger.service";
 
 const submitAnswer = async (
   questionGroupId: string,
   seq: number,
-  teamId: string,
-  userId: string,
+  user: User,
   answer: string
 ) => {
   return await prisma.$transaction(async (transactionClient) => {
@@ -25,7 +27,7 @@ const submitAnswer = async (
     // Check for existing submissions
     const previousSubmissions = await transactionClient.submission.findMany({
       where: {
-        teamId: teamId,
+        teamId: user.teamId!,
         questionGroupId: questionGroupId,
         questionSeq: seq,
       },
@@ -44,8 +46,8 @@ const submitAnswer = async (
     const isCorrect = await bcrypt.compare(answer, question.answer);
     const submission = await transactionClient.submission.create({
       data: {
-        teamId: teamId,
-        userId: userId,
+        teamId: user.teamId!,
+        userId: user.id,
         questionGroupId: questionGroupId,
         questionSeq: seq,
         isCorrect: isCorrect,
@@ -54,10 +56,13 @@ const submitAnswer = async (
 
     if (isCorrect) {
       try {
+        logger.info(
+          `Deleted cache questionGroupSubmission_${questionGroupId}_${user.teamId}`
+        );
         await transactionClient.questionGroupSubmission.update({
           where: {
             teamId_questionGroupId: {
-              teamId: teamId,
+              teamId: user.teamId!,
               questionGroupId: questionGroupId,
             },
           },
@@ -69,27 +74,27 @@ const submitAnswer = async (
         });
 
         // add points
-
         await transactionClient.team.update({
           where: {
-            id: teamId,
+            id: user.teamId!,
           },
           data: {
             points: { increment: question.pointsAwarded },
           },
         });
-
+        logger.info(`Deleted cache team_${user.teamId!}`);
+        logger.info(`Answer Submitted: ${user.teamId} ${questionGroupId}`);
         return submission;
       } catch (error) {
+        logger.error(`Error in submitAnswer: ${error}`);
         throw new Error("Couldn't submit answer");
       }
     }
-
     return submission;
   });
 };
 
-const getAllSubmissionsForUser = async (
+const getAllSubmissionsForUserById = async (
   userId: string,
   questionGroupId: string,
   seq: number
@@ -106,20 +111,10 @@ const getAllSubmissionsForUser = async (
 };
 
 const getAllSubmissionsForUsersTeamByQuestionGroup = async (
-  userId: string,
+  user: User,
   questionGroupId: string,
   seq: number
 ) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
   if (!user.teamId) {
     throw new Error("User is not in a team");
   }
@@ -135,17 +130,7 @@ const getAllSubmissionsForUsersTeamByQuestionGroup = async (
   return submissions;
 };
 
-export {
-  submitAnswer,
-  getAllSubmissionsForUser,
-  getAllSubmissionsForUsersTeamByQuestionGroup,
-};
-
-export const buyHint = async (
-  userId: string,
-  questionGroupId: string,
-  seq: number
-) => {
+const buyHint = async (user: User, questionGroupId: string, seq: number) => {
   return await prisma.$transaction(async (transactionClient) => {
     const question = await transactionClient.question.findUnique({
       where: {
@@ -160,41 +145,30 @@ export const buyHint = async (
       throw new Error("Question not found");
     }
 
-    const user = await transactionClient.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     if (!user.teamId) {
       throw new Error("User is not in a team");
     }
 
     const team = await transactionClient.team.findUnique({
       where: {
-        id: user.teamId,
+        id: user.teamId!,
+      },
+      include: {
+        members: true,
       },
     });
-
-    if (!team) {
-      throw new Error("Team not found");
-    }
 
     if (!question.costOfHint || !question.hint) {
       throw new Error("Question does not have a hint");
     }
 
-    if (team.points < question.costOfHint) {
+    if (team!.points < question.costOfHint) {
       throw new Error("Not enough points to buy hint");
     }
 
     const hintSubmission = await transactionClient.viewedHint.create({
       data: {
-        teamId: team.id,
+        teamId: user.teamId,
         questionGroupId: questionGroupId,
         questionSeq: seq,
       },
@@ -202,7 +176,7 @@ export const buyHint = async (
 
     const updateTeam = await transactionClient.team.update({
       where: {
-        id: team.id,
+        id: user.teamId,
       },
       data: {
         points: { decrement: question.costOfHint },
@@ -212,6 +186,17 @@ export const buyHint = async (
     if (updateTeam.points < 0) {
       throw new Error("Not enough points to buy hint");
     }
+
+    // Delete team cache
+    logger.info(`Deleted team_${user.teamId} cache`);
+
     return { ...hintSubmission, hint: question.hint };
   });
+};
+
+export {
+  submitAnswer,
+  getAllSubmissionsForUserById,
+  getAllSubmissionsForUsersTeamByQuestionGroup,
+  buyHint,
 };

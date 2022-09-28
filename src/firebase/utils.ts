@@ -37,6 +37,5 @@ export const getFiles = async () => {
 
     fileList.push({ ...s, numberOfQuestions: s.questions.length });
   }
-
   return fileList;
 };
