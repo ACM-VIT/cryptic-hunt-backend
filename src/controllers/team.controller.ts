@@ -204,9 +204,13 @@ export const getTeamIfTeamOnLeaderboard = async (team_id: string) => {
     return null;
   }
 
+  if (team_id === null) {
+    throw new Error("team not found");
+  }
+
   const team = await prisma.team.findUnique({
     where: {
-      id: team_id!,
+      id: team_id,
     },
   });
   return { ...team, rank };

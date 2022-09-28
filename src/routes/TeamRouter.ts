@@ -66,6 +66,10 @@ router.get("/", async (req: Request, res: Response) => {
 
 // leaderboard, top 10 teams by points and updatedAt
 router.get("/leaderboard", async (req: Request, res: Response) => {
+  if (req.user.teamId === null) {
+    return res.status(404).json({ message: "user not in team" });
+  }
+
   const teams = await prisma.team.findMany({
     take: 10,
     orderBy: [
@@ -78,7 +82,7 @@ router.get("/leaderboard", async (req: Request, res: Response) => {
 
   return res.json({
     leaderboard: teams,
-    team: getTeamIfTeamOnLeaderboard(req.user.teamId!),
+    team: getTeamIfTeamOnLeaderboard(req.user.teamId),
   });
 });
 
