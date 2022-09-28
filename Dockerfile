@@ -15,9 +15,6 @@ COPY . .
 # Migrate Prisma
 RUN npx prisma generate
 
-# Seed db
-RUN npx prisma db seed
-
 # run the server
 CMD ["npm", "start"] 
 
