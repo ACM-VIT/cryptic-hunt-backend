@@ -26,18 +26,19 @@ async function main() {
       skipDuplicates: true,
     })
   );
-
-  return await Promise.all([
-    await prisma.$transaction(transactions),
-    await prisma.liveConfig.create({
-      data: {
-        mainText: "Event starts in ...",
-        phaseText: "Are you excited?",
-        time: new Date("2022-09-30T10:00:00.000Z"),
-        currentPhase: -1,
-      },
-    }),
-  ]);
+  transactions.push(
+    prisma.liveConfig.createMany({
+      data: [
+        {
+          mainText: "Event starts in ...",
+          phaseText: "Are you excited?",
+          time: new Date("2022-09-30T10:00:00.000Z"),
+          currentPhase: -1,
+        },
+      ],
+    })
+  );
+  return await prisma.$transaction(transactions);
 }
 
 main()
