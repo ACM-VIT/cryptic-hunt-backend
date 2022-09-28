@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
 import { prisma } from "..";
 import bcrypt from "bcrypt";
-import cache from "../services/cache.service";
+
 import logger from "../services/logger.service";
 
 const submitAnswer = async (
@@ -11,19 +11,14 @@ const submitAnswer = async (
   answer: string
 ) => {
   return await prisma.$transaction(async (transactionClient) => {
-    const question = await cache.get(
-      `questionGroup_${questionGroupId}_${seq}`,
-      async () => {
-        return await transactionClient.question.findUnique({
-          where: {
-            seq_questionGroupId: {
-              questionGroupId: questionGroupId,
-              seq: seq,
-            },
-          },
-        });
-      }
-    );
+    const question = await transactionClient.question.findUnique({
+      where: {
+        seq_questionGroupId: {
+          questionGroupId: questionGroupId,
+          seq: seq,
+        },
+      },
+    });
 
     if (!question) {
       throw new Error("Question not found");
@@ -62,7 +57,6 @@ const submitAnswer = async (
 
     if (isCorrect) {
       try {
-        cache.del(`questionGroupSubmission_${questionGroupId}_${user.teamId}`);
         logger.info(
           `Deleted cache questionGroupSubmission_${questionGroupId}_${user.teamId}`
         );
@@ -89,7 +83,6 @@ const submitAnswer = async (
             points: { increment: question.pointsAwarded },
           },
         });
-        cache.del(`team_${user.teamId!}`);
         logger.info(`Deleted cache team_${user.teamId!}`);
         logger.info(`Answer Submitted: ${user.teamId} ${questionGroupId}`);
         return submission;
@@ -140,19 +133,14 @@ const getAllSubmissionsForUsersTeamByQuestionGroup = async (
 
 const buyHint = async (user: User, questionGroupId: string, seq: number) => {
   return await prisma.$transaction(async (transactionClient) => {
-    const question = await cache.get(
-      `questionGroup_${questionGroupId}_${seq}`,
-      async () => {
-        return await transactionClient.question.findUnique({
-          where: {
-            seq_questionGroupId: {
-              questionGroupId: questionGroupId,
-              seq: seq,
-            },
-          },
-        });
-      }
-    );
+    const question = await transactionClient.question.findUnique({
+      where: {
+        seq_questionGroupId: {
+          questionGroupId: questionGroupId,
+          seq: seq,
+        },
+      },
+    });
 
     if (!question) {
       throw new Error("Question not found");
@@ -162,15 +150,13 @@ const buyHint = async (user: User, questionGroupId: string, seq: number) => {
       throw new Error("User is not in a team");
     }
 
-    const team = await cache.get(`team_${user.teamId}`, async () => {
-      return await transactionClient.team.findUnique({
-        where: {
-          id: user.teamId!,
-        },
-        include: {
-          members: true,
-        },
-      });
+    const team = await transactionClient.team.findUnique({
+      where: {
+        id: user.teamId!,
+      },
+      include: {
+        members: true,
+      },
     });
 
     if (!question.costOfHint || !question.hint) {
@@ -203,7 +189,6 @@ const buyHint = async (user: User, questionGroupId: string, seq: number) => {
     }
 
     // Delete team cache
-    cache.del(`team__${user.teamId}`);
     logger.info(`Deleted team_${user.teamId} cache`);
 
     return { ...hintSubmission, hint: question.hint };

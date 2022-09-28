@@ -7,14 +7,13 @@ import {
 } from "../controllers/admin.controller";
 import { readCsv, Record } from "../controllers/verify.controllers";
 import { prisma } from "..";
-import cache from "../services/cache.service";
+
 import logger from "../services/logger.service";
 const router = Router();
 
 router.get("/update", async (req: Request, res: Response) => {
   try {
     await updateAllQuestions();
-    logger.info("Deleted QuestionGroups Cache ", cache.del("questionGroups"));
 
     return res.json({ message: "Updated" });
   } catch (e) {
@@ -115,9 +114,4 @@ router.get("/whitelistupdate", async (req, res) => {
   }
 });
 
-router.get("/flush", async (req, res) => {
-  cache.flush();
-  logger.info("Cached Flushed Successfully");
-  return res.status(200).json({ message: "done" });
-});
 export default router;

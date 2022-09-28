@@ -7,7 +7,7 @@ import {
   getRank,
   getTeamIfTeamOnLeaderboard,
 } from "../controllers/team.controller";
-import cache from "../services/cache.service";
+
 import logger from "../services/logger.service";
 
 const router = Router();
@@ -28,8 +28,6 @@ router.post("/jointeam", async (req: Request, res: Response) => {
 
   try {
     const updatedUserWithJoinedTeam = await joinTeam(teamcode, req.user);
-    cache.del(`team_${updatedUserWithJoinedTeam.teamId}`);
-    logger.info(`Deleted team_${updatedUserWithJoinedTeam.teamId} cache`);
     return res.json(updatedUserWithJoinedTeam);
   } catch (e) {
     if (e instanceof Error) {
@@ -41,8 +39,6 @@ router.delete("/", async (req: Request, res: Response) => {
   logger.info(`User ${req.user.id} is leaving team ${req.user.teamId}`);
   try {
     const leave = await leaveTeam(req.user);
-    cache.del(`team_${req.user.teamId}`);
-    logger.info(`Deleted team_${req.user.teamId} cache`);
     return res.json(leave);
   } catch (e) {
     if (e instanceof Error) {
@@ -55,15 +51,13 @@ router.get("/", async (req: Request, res: Response) => {
   if (req.user.teamId) {
     // Get team rank
     const teamRank = await getRank(req.user.teamId);
-    const team = await cache.get(`team_${req.user.teamId}`, async () => {
-      return await prisma.team.findUnique({
-        where: {
-          id: req.user.teamId!,
-        },
-        include: {
-          members: true,
-        },
-      });
+    const team = await prisma.team.findUnique({
+      where: {
+        id: req.user.teamId!,
+      },
+      include: {
+        members: true,
+      },
     });
     return res.json({ ...team, rank: teamRank });
   }

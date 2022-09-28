@@ -6,7 +6,6 @@ import {
   getFinalQuestionGroupList,
   getQuestionGroupById,
 } from "../controllers/questionGroup.controller";
-import cache from "../services/cache.service";
 
 const router = Router();
 

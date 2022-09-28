@@ -1,14 +1,12 @@
 import { QuestionGroup, User } from "@prisma/client";
 import { prisma } from "..";
-import cache from "../services/cache.service";
+
 import logger from "../services/logger.service";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
-  return await cache.get("questionGroups", async () => {
-    const questionGroups = await prisma.questionGroup.findMany();
-    return questionGroups;
-  });
+  const questionGroups = await prisma.questionGroup.findMany();
+  return questionGroups;
 };
 
 // Check the number of questions solved in a given question group by a given user's team
@@ -18,19 +16,15 @@ const numQuestionsSolved = async (questionGroup: QuestionGroup, user: User) => {
   }
 
   // Check team questionGroup submissions
-  const questionGroupSubmission = await cache.get(
-    `questionGroupSubmission_${questionGroup.id}_${user.teamId}`,
-    async () => {
-      return await prisma.questionGroupSubmission.findUnique({
-        where: {
-          teamId_questionGroupId: {
-            teamId: user.teamId!,
-            questionGroupId: questionGroup.id,
-          },
+  const questionGroupSubmission =
+    await prisma.questionGroupSubmission.findUnique({
+      where: {
+        teamId_questionGroupId: {
+          teamId: user.teamId!,
+          questionGroupId: questionGroup.id,
         },
-      });
-    }
-  );
+      },
+    });
 
   if (!questionGroupSubmission) {
     return "Question group submission not found";
@@ -42,12 +36,10 @@ const numQuestionsSolved = async (questionGroup: QuestionGroup, user: User) => {
 
 // get current phase score
 const getCurrentPhaseScore = async () => {
-  const currentPhase = await cache.get("currentPhaseScore", async () => {
-    return await prisma.liveConfig.findFirst({
-      select: {
-        currentPhase: true,
-      },
-    });
+  const currentPhase = await prisma.liveConfig.findFirst({
+    select: {
+      currentPhase: true,
+    },
   });
 
   if (!currentPhase) {
@@ -101,20 +93,15 @@ const getUserHasViewedHint = async (
   }
 
   // look for record in ViewedHint table
-  const viewedHint = cache.get(
-    `viewedHint_${questionGroupId}_${user.teamId}_${seq}`,
-    async () => {
-      return await prisma.viewedHint.findUnique({
-        where: {
-          teamId_questionGroupId_questionSeq: {
-            teamId: user.teamId!,
-            questionGroupId,
-            questionSeq: seq,
-          },
-        },
-      });
-    }
-  );
+  const viewedHint = await prisma.viewedHint.findUnique({
+    where: {
+      teamId_questionGroupId_questionSeq: {
+        teamId: user.teamId!,
+        questionGroupId,
+        questionSeq: seq,
+      },
+    },
+  });
 
   return !!viewedHint;
 };
@@ -164,34 +151,28 @@ const getTeamHasSolvedSpecificQuestion = async (
 
 // Get question group by id
 const getQuestionGroupById = async (questionGroupId: string, user: User) => {
-  const questionGroup = await cache.get(
-    `questionGroup_${questionGroupId}`,
-    async () => {
-      const questionGroup = await prisma.questionGroup.findUnique({
-        where: {
-          id: questionGroupId,
+  const questionGroup = await prisma.questionGroup.findUnique({
+    where: {
+      id: questionGroupId,
+    },
+    include: {
+      questions: {
+        select: {
+          answer: false,
+          hint: true,
+          costOfHint: true,
+          description: true,
+          pointsAwarded: true,
+          seq: true,
+          title: true,
+          images: true,
         },
-        include: {
-          questions: {
-            select: {
-              answer: false,
-              hint: true,
-              costOfHint: true,
-              description: true,
-              pointsAwarded: true,
-              seq: true,
-              title: true,
-              images: true,
-            },
-            orderBy: {
-              seq: "asc",
-            },
-          },
+        orderBy: {
+          seq: "asc",
         },
-      });
-      return questionGroup;
-    }
-  );
+      },
+    },
+  });
 
   if (!questionGroup) {
     throw new Error("Question group not found");
