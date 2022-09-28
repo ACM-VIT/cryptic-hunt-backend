@@ -56,7 +56,7 @@ export async function joinTeam(team_code: string, user: User) {
 
     const team = await prisma.team.findUnique({
       where: {
-        id: user.teamId!,
+        teamcode: team_code,
       },
       include: {
         members: true,
