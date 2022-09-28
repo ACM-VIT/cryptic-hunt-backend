@@ -82,7 +82,7 @@ router.get("/leaderboard", async (req: Request, res: Response) => {
 
   return res.json({
     leaderboard: teams,
-    team: getTeamIfTeamOnLeaderboard(req.user.teamId),
+    team: await getTeamIfTeamOnLeaderboard(req.user.teamId),
   });
 });
 
