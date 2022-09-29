@@ -1,77 +1,79 @@
-import { Response, Router } from "express";
+import { Request, Response, Router } from "express";
 import { prisma } from "..";
-import { AuthRequest } from "../types/AuthRequest.type";
-const router = Router();
 import { readCsv, Record } from "../controllers/verify.controllers";
 import { Prisma } from "@prisma/client";
+
+const router = Router();
 
 interface EmailType {
   email: string;
   hasWhitelisted: boolean;
 }
 
-router.post("/whitelist", async (req: AuthRequest, res: Response) => {
+interface whitelistType {
+  email: string;
+  regno: string;
+  name: string;
+  mobile: string;
+  college: string;
+}
+
+router.post("/whitelist", async (req: Request, res: Response) => {
   try {
-    const { emails } = req.body as { emails: string[] };
-    if (
-      !Array.isArray(emails) ||
-      emails.length < 1 ||
-      typeof emails[0] !== "string"
-    ) {
-      return res.status(400).json({
-        message: "Invalid type of emails",
-      });
-    }
+    const { data } = req.body as { data: whitelistType[] };
 
     const records = await readCsv();
     const user = records.find(
       (record: Record) => record.email === req.user!.email
     );
-    const len = user!.paid / 250 - 1;
-    let emails_arr: EmailType[] = [];
+    const len = user!.paid / 250;
 
-    emails.forEach((item: string) => {
-      let obj: EmailType = { email: "", hasWhitelisted: true };
-      obj["email"] = item;
-      emails_arr.push(obj);
-    });
-    if (len != emails_arr.length) {
+    if (len !== data.length) {
       return res.status(400).json({
-        message: `you can't nominate, you should nominate ${len} users`,
+        message: `you can't nominate, you should nominate ${len - 1} users`,
       });
-    } else {
+    }
+
+    if (data[0].email !== req.user.email) {
+      return res.status(400).json({
+        message: `User's email not found`,
+      });
+    }
+    for (const item of data) {
+      if (typeof item !== "object") {
+        return res.status(400).json({ message: "Invalid data" });
+      }
+
+      const { email, regno, name, mobile, college } = item;
       const check = await prisma.whitelist.findMany({
         where: {
-          email: req.user!.email,
+          email,
           hasWhitelisted: true,
         },
       });
       if (check.length > 0) {
         return res.status(409).json({
-          message: `user has already nominated!`,
+          message: `${email} is already nominated!`,
         });
-      } else {
-        try {
-          const whitelist = await prisma.whitelist.createMany({
-            data: emails_arr,
-            skipDuplicates: true,
-          });
-          const updateuser = await prisma.whitelist.update({
-            where: {
-              email: req.user!.email,
-            },
-            data: {
-              hasWhitelisted: true,
-            },
-          });
-          return res.json({ whitelist });
-        } catch (e) {
-          if (e instanceof Prisma.PrismaClientKnownRequestError) {
-            if (e.code === "P2002") {
-              return res.json({ message: "users already verified" });
-            } else {
-              throw e;
-            }
+      }
+      try {
+        await prisma.whitelist.create({
+          data: {
+            email,
+            regno,
+            name,
+            mobile,
+            college,
+            hasWhitelisted: true,
+          },
+        });
+        return res.json({ message: "Form submitted successfully" });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2002") {
+            return res.json({ message: "Form already submitted" });
+          } else {
+            throw e;
           }
         }
       }
@@ -89,7 +91,7 @@ router.post("/whitelist", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.get("/whitelist", async (req: AuthRequest, res: Response) => {
+router.get("/whitelist", async (req: Request, res: Response) => {
   const whitelist = await prisma.whitelist.findMany();
   const listemail: string[] = [];
   whitelist.forEach((element) => {

@@ -120,8 +120,14 @@ model LiveConfig {
 }
 
 model Whitelist {
-  email     String   @id
-  createdAt DateTime @default(now())
+  email          String   @id
+  mobile         String?
+  name           String?
+  gender         String?
+  regno          String?  @unique
+  college        String?
+  hasWhitelisted Boolean?
+  createdAt      DateTime @default(now())
 }
 
 model TimeLineEvents {
