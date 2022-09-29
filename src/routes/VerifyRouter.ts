@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import { prisma } from "..";
 import { readCsv, Record } from "../controllers/verify.controllers";
 import { Prisma } from "@prisma/client";
+import { logger } from "@sentry/utils";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
     );
     const len = user!.paid;
 
-    if (len !== data.length) {
+    if (len != data.length) {
       return res.status(400).json({
         message: `you can't nominate, you should nominate ${len - 1} users`,
       });
@@ -61,6 +62,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
           hasWhitelisted: true,
         },
       });
+      logger.info(`User ${req.user.email} updated`);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
@@ -87,6 +89,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
           hasWhitelisted: true,
         },
       });
+
       if (check.length > 0) {
         return res.status(409).json({
           message: `${email} is already nominated!`,
@@ -105,6 +108,8 @@ router.post("/whitelist", async (req: Request, res: Response) => {
           hasWhitelisted: true,
         })),
       });
+
+      logger.info(`User ${req.user.email} nominated ${data.length} users`);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
@@ -116,6 +121,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
     }
     return res.json({ message: "Form submitted successfully" });
   } catch (error) {
+    logger.error(`Error in whitelist by ${req.user.email}`);
     if (error instanceof Error) {
       return res.status(400).json({
         message: error.message,
@@ -128,13 +134,51 @@ router.post("/whitelist", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/whitelist", async (req: Request, res: Response) => {
-  const whitelist = await prisma.whitelist.findMany();
-  const listemail: string[] = [];
-  whitelist.forEach((element) => {
-    listemail.push(element.email);
-  });
-  return res.json({ whitelist: listemail });
+router.get("/getDetails", async (req: Request, res: Response) => {
+  try {
+    const whitelist = await prisma.whitelist.findUnique({
+      where: {
+        email: req.user.email,
+      },
+    });
+    if (!whitelist) {
+      return res.status(403).json({ message: "Not Whitelisted" });
+    }
+
+    const { data } = req.body as { data: whitelistType[] };
+
+    const records = await readCsv();
+    const user = records.find(
+      (record: Record) => record.email === req.user!.email
+    );
+    const len = user!.paid;
+    return res.json({
+      email: req.user.email,
+      name: req.user.name,
+      paidFor: len,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return res.json({ message: "Some error occured" });
+      } else {
+        throw error;
+      }
+    } else {
+      return res.status(500).json({
+        message: "Internal Server Error",
+      });
+    }
+  }
 });
+
+// router.get("/whitelist", async (req: Request, res: Response) => {
+//   const whitelist = await prisma.whitelist.findMany();
+//   const listemail: string[] = [];
+//   whitelist.forEach((element) => {
+//     listemail.push(element.email);
+//   });
+//   return res.json({ whitelist: listemail });
+// });
 
 export default router;
