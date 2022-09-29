@@ -85,9 +85,9 @@ app.get("/", (req, res) => {
 });
 
 app.use(authMiddleware);
-app.use(whitelistMiddleware);
-
 app.use("/verify", verifyRouter);
+
+app.use(whitelistMiddleware);
 app.use("/users", usersRouter);
 app.use("/teams", teamsRouter);
 

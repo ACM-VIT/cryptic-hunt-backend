@@ -8,7 +8,10 @@ async function checkwhitelist(email: string) {
       email: email,
     },
   });
-  return whitelist;
+  if (whitelist?.hasWhitelisted) {
+    return true;
+  }
+  return false;
 }
 
 async function isBlacklisted(email: string) {
@@ -29,8 +32,8 @@ export async function whitelistMiddleware(
   next: NextFunction
 ) {
   try {
-    const user = await checkwhitelist(req.user.email);
-    if (!user) {
+    const whitelist = await checkwhitelist(req.user.email);
+    if (!whitelist) {
       return res.status(403).json({ message: "Not Whitelisted" });
     }
     const blacklisted = await isBlacklisted(req.user.email);

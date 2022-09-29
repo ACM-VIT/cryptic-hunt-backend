@@ -15,6 +15,16 @@ interface whitelistType {
 
 router.post("/whitelist", async (req: Request, res: Response) => {
   try {
+    // If user not in whitelisted table
+    const whitelist = await prisma.whitelist.findUnique({
+      where: {
+        email: req.user.email,
+      },
+    });
+    if (!whitelist) {
+      return res.status(403).json({ message: "Not Whitelisted" });
+    }
+
     const { data } = req.body as { data: whitelistType[] };
 
     const records = await readCsv();
@@ -48,6 +58,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
           name,
           mobile,
           college,
+          hasWhitelisted: true,
         },
       });
     } catch (e) {
@@ -61,7 +72,8 @@ router.post("/whitelist", async (req: Request, res: Response) => {
         throw e;
       }
     }
-
+    // delete first object from data
+    data.shift();
     for (let i = 1; i < data.length; i++) {
       const item = data[i];
       if (typeof item !== "object") {
@@ -80,24 +92,25 @@ router.post("/whitelist", async (req: Request, res: Response) => {
           message: `${email} is already nominated!`,
         });
       }
-      try {
-        await prisma.whitelist.create({
-          data: {
-            email,
-            regno,
-            name,
-            mobile,
-            college,
-            hasWhitelisted: true,
-          },
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
-            return res.json({ message: "Form already submitted" });
-          } else {
-            throw e;
-          }
+    }
+    try {
+      // whitelisted is true
+      await prisma.whitelist.createMany({
+        data: data.map((item) => ({
+          email: item.email,
+          regno: item.regno,
+          name: item.name,
+          mobile: item.mobile,
+          college: item.college,
+          hasWhitelisted: true,
+        })),
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          return res.json({ message: "Form already submitted" });
+        } else {
+          throw e;
         }
       }
     }
