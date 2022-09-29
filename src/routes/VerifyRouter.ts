@@ -162,7 +162,10 @@ router.get("/getDetails", async (req: Request, res: Response) => {
       if (error.code === "P2002") {
         return res.json({ message: "Some error occured" });
       } else {
-        throw error;
+        // this line crashed the server
+        return res.status(500).json({
+          message: "Internal Server Error",
+        });
       }
     } else {
       return res.status(500).json({
