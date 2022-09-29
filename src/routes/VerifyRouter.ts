@@ -31,7 +31,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
     const user = records.find(
       (record: Record) => record.email === req.user!.email
     );
-    const len = user!.paid / 250;
+    const len = user!.paid;
 
     if (len !== data.length) {
       return res.status(400).json({
