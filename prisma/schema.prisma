@@ -138,3 +138,16 @@ model TimeLineEvents {
   subTitle  String?
   numHours  Int
 }
+
+model Updates {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String
+  content   String
+}
+
+model Rules {
+  id      Int    @id @default(autoincrement())
+  content String
+}
