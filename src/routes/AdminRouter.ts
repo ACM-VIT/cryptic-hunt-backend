@@ -141,4 +141,21 @@ router.post("/blacklist", async (req, res) => {
   }
 });
 
+router.get("/leaderboard", async (req, res) => {
+  try {
+    const teams = await prisma.team.findMany({
+      take: 10,
+      orderBy: [
+        { points: "desc" },
+        {
+          updatedAt: "asc",
+        },
+      ],
+    });
+    return res.status(200).json({ teams });
+  } catch (error) {
+    return res.sendStatus(500).json({ error: "Error in fetching Leaderboard" });
+  }
+});
+
 export default router;
