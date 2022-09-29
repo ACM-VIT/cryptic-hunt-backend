@@ -73,4 +73,52 @@ router.post(
   }
 );
 
+// GET all rules
+router.get("/rules", async (req: Request, res: Response) => {
+  return res.json(
+    await prisma.rules.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    })
+  );
+});
+
+// POST create rules
+router.post("/rules", adminMiddleware, async (req: Request, res: Response) => {
+  const { content } = req.body;
+
+  if (!content) {
+    return res.status(400).json({
+      message: "Missing required fields",
+    });
+  }
+
+  if (typeof content !== "string") {
+    return res.status(400).json({
+      message: "Invalid type of content",
+    });
+  }
+
+  try {
+    return res.json(
+      await prisma.rules.create({
+        data: {
+          content,
+        },
+      })
+    );
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    } else {
+      return res.status(500).json({
+        message: "An error occured :(",
+      });
+    }
+  }
+});
+
 export default router;
