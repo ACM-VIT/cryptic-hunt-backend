@@ -34,7 +34,36 @@ router.post("/whitelist", async (req: Request, res: Response) => {
         message: `User's email not found`,
       });
     }
-    for (const item of data) {
+
+    // Update existing user
+    const { regno, name, mobile, college } = data[0];
+    console.log(regno, name, mobile, college);
+    try {
+      const updateUser = await prisma.whitelist.update({
+        where: {
+          email: req.user.email,
+        },
+        data: {
+          regno,
+          name,
+          mobile,
+          college,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          return res.status(400).json({
+            message: `Registration Number already exists`,
+          });
+        }
+      } else {
+        throw e;
+      }
+    }
+
+    for (let i = 1; i < data.length; i++) {
+      const item = data[i];
       if (typeof item !== "object") {
         return res.status(400).json({ message: "Invalid data" });
       }
@@ -62,7 +91,6 @@ router.post("/whitelist", async (req: Request, res: Response) => {
             hasWhitelisted: true,
           },
         });
-        return res.json({ message: "Form submitted successfully" });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
           if (e.code === "P2002") {
@@ -73,6 +101,7 @@ router.post("/whitelist", async (req: Request, res: Response) => {
         }
       }
     }
+    return res.json({ message: "Form submitted successfully" });
   } catch (error) {
     if (error instanceof Error) {
       return res.status(400).json({
