@@ -8,7 +8,10 @@ async function checkwhitelist(email: string) {
       email: email,
     },
   });
-  if (whitelist?.hasWhitelisted) {
+  if (!whitelist) {
+    return false;
+  }
+  if (whitelist.hasWhitelisted) {
     return true;
   }
   return false;
