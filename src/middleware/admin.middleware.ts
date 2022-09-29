@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { auth } from "../firebase/firebase";
+import logger from "../services/logger.service";
 
 const admins = process.env.ADMINS?.split(",");
-console.log(admins);
+logger.info(`Admins: ${admins}`);
 
 async function verify(token: string) {
   const decodedToken = await auth.verifyIdToken(token);
@@ -24,19 +25,19 @@ export const adminMiddleware = async (
     // verify user's google authentication
     const userGoogle = await auth.verifyIdToken(isToken);
 
-    console.log(userGoogle.email);
+    logger.info(`User: ${userGoogle.email}`);
     // if user's email is in the list of admins, move forward
     if (!admins) {
-      throw new Error("Admins env not found");
+      throw new Error("Admins .env not found");
     }
     if (admins.includes(userGoogle.email!)) {
       return next();
     } else {
-      console.log("not admin");
+      logger.info(`User: ${userGoogle.email} is not an admin`);
       throw new Error("User not authorized");
     }
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     if (error instanceof Error) {
       return res.status(401).json({ message: error.message });
     }

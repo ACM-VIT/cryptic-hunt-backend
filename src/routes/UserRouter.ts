@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { Prisma } from "@prisma/client";
 import { prisma } from "..";
+import logger from "../services/logger.service";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.post("/profile", async (req: Request, res: Response) => {
     return res.json(user_signup);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      console.log(e);
+      logger.error(e);
       return res
         .status(501)
         .json({ message: "unable to modify profile details" });
@@ -35,7 +36,7 @@ router.get("/profile", async (req: Request, res: Response) => {
     return res.json(userProfile);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      console.log(e);
+      logger.error(e);
       return res
         .status(501)
         .json({ message: "an error occured while getting user profile" });

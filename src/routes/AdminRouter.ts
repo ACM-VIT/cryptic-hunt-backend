@@ -114,4 +114,31 @@ router.get("/whitelistupdate", async (req, res) => {
   }
 });
 
+router.post("/blacklist", async (req, res) => {
+  try {
+    const teamId = req.query.teamId as string;
+    // find users in team
+    const users = await prisma.user.findMany({
+      where: {
+        teamId: teamId,
+      },
+    });
+    // add to blacklist
+    await prisma.whitelist.updateMany({
+      where: {
+        email: {
+          in: users.map((v) => v.email),
+        },
+      },
+      data: {
+        isBlacklisted: true,
+      },
+    });
+    logger.info(`Blacklisted team ${teamId}`);
+    return res.status(200).json({ message: `done` });
+  } catch (error) {
+    return res.sendStatus(500).json({ error: "Error in BlackListing" });
+  }
+});
+
 export default router;

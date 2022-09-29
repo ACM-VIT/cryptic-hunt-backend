@@ -78,7 +78,6 @@ const uploadQuestionGroup = async (questionGroup: UploadQuestionMethodType) => {
 };
 
 const uploadQuestions = async (pc?: Prisma.TransactionClient) => {
-  const client = pc || prisma;
   const questionGroups = await getFiles();
 
   logger.info("Uploading questions");

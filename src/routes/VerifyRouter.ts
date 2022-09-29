@@ -5,11 +5,6 @@ import { Prisma } from "@prisma/client";
 
 const router = Router();
 
-interface EmailType {
-  email: string;
-  hasWhitelisted: boolean;
-}
-
 interface whitelistType {
   email: string;
   regno: string;

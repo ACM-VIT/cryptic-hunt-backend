@@ -126,7 +126,8 @@ model Whitelist {
   gender         String?
   regno          String?  @unique
   college        String?
-  hasWhitelisted Boolean?
+  hasWhitelisted Boolean  @default(false)
+  isBlacklisted  Boolean  @default(false)
   createdAt      DateTime @default(now())
 }
 
