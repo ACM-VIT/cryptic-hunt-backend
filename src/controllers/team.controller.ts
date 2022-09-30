@@ -177,6 +177,9 @@ export async function getRank(team_id: string) {
         points: {
           gte: team!.points,
         },
+        updatedAt: {
+          lte: team!.updatedAt,
+        },
       },
       orderBy: [
         { points: "desc" },
