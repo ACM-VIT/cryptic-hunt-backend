@@ -5,7 +5,11 @@ import logger from "../services/logger.service";
 
 // Retrieve all question groups
 const getAllQuestionGroups = async () => {
-  const questionGroups = await prisma.questionGroup.findMany();
+  const questionGroups = await prisma.questionGroup.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
   return questionGroups;
 };
 
