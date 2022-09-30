@@ -172,10 +172,13 @@ export async function getRank(team_id: string) {
       },
     });
     // if points are same than order by time
-    const teams = await prisma.team.findMany({
+    const teams = await prisma.team.count({
       where: {
         points: {
           gte: team!.points,
+        },
+        updatedAt: {
+          lte: team!.updatedAt,
         },
       },
       orderBy: [
@@ -185,7 +188,7 @@ export async function getRank(team_id: string) {
         },
       ],
     });
-    return teams.length;
+    return teams;
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       throw "an error occured while getting rank";
