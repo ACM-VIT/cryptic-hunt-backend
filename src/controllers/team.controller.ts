@@ -3,7 +3,7 @@ import { prisma } from "..";
 import ShortUniqueId from "short-unique-id";
 
 import logger from "../services/logger.service";
-const MAX_PARTICIPANTS_POSSIBLE = 4;
+const MAX_PARTICIPANTS_POSSIBLE = 6;
 // unique code
 async function getRandomCode() {
   const shortUniqueInstance = new ShortUniqueId({ length: 6 });
