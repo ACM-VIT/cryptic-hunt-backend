@@ -102,11 +102,17 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 // CREATE question group
 router.post("/", async (req: Request, res: Response) => {
-  const { name, description, questions, isSequence } = req.body;
+  const { name, description, questions, isSequence, phase } = req.body;
 
-  if (!name || !description || !questions || !isSequence) {
+  if (
+    !name ||
+    !description ||
+    !Array.isArray(questions) ||
+    typeof isSequence === "undefined" ||
+    typeof phase === "undefined"
+  ) {
     return res.status(400).json({
-      message: "Missing required fields",
+      message: `Missing required fields ${JSON.stringify(req.body)}`,
     });
   }
 
@@ -138,17 +144,29 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    const { title, answer, pointsAwarded, description, seq } = question;
+    const {
+      title,
+      answer,
+      pointsAwarded,
+      description,
+      seq,
+      costOfHint,
+      hint,
+      images,
+    } = question;
 
     if (
       typeof seq !== "number" ||
       typeof title !== "string" ||
       typeof description !== "string" ||
       typeof answer !== "string" ||
-      typeof pointsAwarded !== "number"
+      typeof pointsAwarded !== "number" ||
+      (typeof costOfHint !== "number" && costOfHint !== null) ||
+      (typeof hint !== "string" && hint !== null) ||
+      (typeof images !== "object" && !Array.isArray(images))
     ) {
       return res.status(400).json({
-        message: "Invalid type of question",
+        message: `Invalid type of question ${JSON.stringify(question)}`,
       });
     }
   }
@@ -159,6 +177,7 @@ router.post("/", async (req: Request, res: Response) => {
       questions,
       isSequence,
       numberOfQuestions: questions.length,
+      phase,
     });
   } catch (error) {
     if (error instanceof Error) {
