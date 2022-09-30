@@ -27,6 +27,10 @@ router.post("/whitelist", async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Not Whitelisted" });
     }
 
+    if (whitelist.hasWhitelisted) {
+      return res.status(403).json({ message: "Already Submitted the form" });
+    }
+
     const { data } = req.body as { data: whitelistType[] };
 
     const records = await readCsv();
