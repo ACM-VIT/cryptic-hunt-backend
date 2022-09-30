@@ -6,6 +6,7 @@ import {
   getFinalQuestionGroupList,
   getQuestionGroupById,
 } from "../controllers/questionGroup.controller";
+import { adminMiddleware } from "../middleware/admin.middleware";
 
 const router = Router();
 
@@ -101,7 +102,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // CREATE question group
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", adminMiddleware, async (req: Request, res: Response) => {
   const { name, description, questions, isSequence, phase } = req.body;
 
   if (
