@@ -124,8 +124,9 @@ model Whitelist {
   mobile         String?
   name           String?
   gender         String?
-  regno          String?  @unique
+  regno          String?
   college        String?
+  appleId        String?
   hasWhitelisted Boolean  @default(false)
   isBlacklisted  Boolean  @default(false)
   createdAt      DateTime @default(now())

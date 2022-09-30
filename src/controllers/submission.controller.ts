@@ -56,9 +56,6 @@ const submitAnswer = async (
 
     if (isCorrect) {
       try {
-        logger.info(
-          `Deleted cache questionGroupSubmission_${questionGroupId}_${user.teamId}`
-        );
         await transactionClient.questionGroupSubmission.update({
           where: {
             teamId_questionGroupId: {
@@ -82,7 +79,6 @@ const submitAnswer = async (
             points: { increment: question.pointsAwarded },
           },
         });
-        logger.info(`Deleted cache team_${user.teamId!}`);
         logger.info(`Answer Submitted: ${user.teamId} ${questionGroupId}`);
         return submission;
       } catch (error) {
