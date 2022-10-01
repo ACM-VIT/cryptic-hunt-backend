@@ -182,7 +182,7 @@ export async function getRank(team_id: string) {
           },
           {
             updatedAt: {
-              lte: team!.updatedAt,
+              gte: team!.updatedAt,
             },
           },
         ],
