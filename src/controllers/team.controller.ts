@@ -174,12 +174,18 @@ export async function getRank(team_id: string) {
     // if points are same than order by time
     const teams = await prisma.team.count({
       where: {
-        points: {
-          gte: team!.points,
-        },
-        updatedAt: {
-          lte: team!.updatedAt,
-        },
+        AND: [
+          {
+            points: {
+              gte: team!.points,
+            },
+          },
+          {
+            updatedAt: {
+              lte: team!.updatedAt,
+            },
+          },
+        ],
       },
       orderBy: [
         { points: "desc" },
