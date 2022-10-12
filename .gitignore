@@ -1,8 +1,7 @@
 node_modules/
 dist/
-firebase.ts
 sample.csv
-*.env*
+*.env
 package-lock.json
 *-firebase-adminsdk-*
 *~
